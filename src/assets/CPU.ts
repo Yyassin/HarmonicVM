@@ -5,8 +5,8 @@ import instructions from './instructions';
 class CPU {
     #memory: Memory;                    // Main memory [8-bit words]
     #registerLabels: Array<string>;     // Names for general purpose 16-bit registers (GPRs).
-    #registers: Memory;                    // Memory for the GPRs.
-    #registersMap: Object;                 // Map: Register Label -> Memory Location 
+    #registers: Memory;                 // Memory for the GPRs.
+    #registersMap: Object;              // Map: Register Label -> Memory Location 
     
     /**
      * Create a new CPU with the specified main memory.
@@ -39,11 +39,28 @@ class CPU {
     /**
      * Prints the name and contents of each register.
      */
-    debug() {
+    debug(): void {
         this.#registerLabels.forEach((label: string): void => {
             console.log(`${label}: \t0x${this.getRegister(label).toString(16).padStart(4, '0')}`);
         });
         console.log('\n----------\n')
+    }
+
+    /**
+     * View the byte at the specified address in main memory
+     * in addition to the 7 bytes that follow.
+     * 0x0f01: 0x04 0xab 0x7f ... 0x08 [8 words here]
+     * @param address number, the address to inspect.
+     */
+    viewMemoryAt(address: number): void {
+        // Arraylike: [undefined x 8].
+        // Get and format next 8 words starting with memory[address].
+        const nextEightBytes = Array.from({length: 8}, (_, i) =>
+            this.#memory.getUint8(address + i)
+        ).map(byte => `0x${byte.toString(16).padStart(2, '0')}`);
+
+        // Print the memory address followed by contents in 8 words.
+        console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextEightBytes.join(' ')}`);
     }
 
    /**
@@ -98,17 +115,43 @@ class CPU {
      */
     execute(instruction: number): void {
         switch(instruction) {
-            // Move 16b literal into r1 register.
-            case instructions.MOV_LIT_R1: {
+            // Move 16b literal into destination register.
+            case instructions.MOV_LIT_RD: {
+                // Get the index and account for byte offset: each Reg is 2 bytes.
+                const registerIdx = (this.fetch() % this.#registerLabels.length) * 2; 
+                
                 const literal = this.fetch16();
-                this.setRegister('r1', literal);
+                this.#registers.setUint16(registerIdx, literal);
                 return;
             }
 
-            // Move 16b literal into r2 register.
-            case instructions.MOV_LIT_R2: {
-                const literal = this.fetch16();
-                this.setRegister('r2', literal);
+            // Move source register contents to destination register.
+            case instructions.MOV_RS_RD: {
+                // Get register indices
+                const registerSrc = (this.fetch() % this.#registerLabels.length) * 2; 
+                const registerDest = (this.fetch() % this.#registerLabels.length) * 2; 
+                const srcVal = this.#registers.getUint16(registerSrc);
+                this.#registers.setUint16(registerDest, srcVal);
+                return;
+            }
+
+            // Store contents of source register into main memory[imm16].
+            case instructions.STR_RS_MEM: {
+                // Get register index
+                const registerSrc = (this.fetch() % this.#registerLabels.length) * 2; 
+                const memAddress = this.fetch16();
+                const value = this.#registers.getUint16(registerSrc);
+                this.#memory.setUint16(memAddress, value);
+                return;
+            }
+
+            // Load contents of main memory[imm16] in destination register.
+            case instructions.LDR_MEM_RD: {
+                // Get register index
+                const registerSrc = (this.fetch() % this.#registerLabels.length) * 2; 
+                const memAddress = this.fetch16();
+                const value = this.#memory.getUint16(memAddress);
+                this.#registers.setUint16(registerSrc, value);
                 return;
             }
 
@@ -122,11 +165,20 @@ class CPU {
                 this.setRegister('acc', registerValueX + registerValueY);
                 return;
             }
+
+            // Branch to specified address iff literal != [acc]
+            case instructions.JMP_NOT_EQ: {
+                const literal = this.fetch16();
+                const branchAddress = this.fetch16();
+                if (literal != this.getRegister('acc'))
+                    this.setRegister('pc', branchAddress);
+                return;
+            }
         }
     }
 
     /**
-     * Perform a fetch, decode, execute CPU cycle.
+     * Perform a fetch, decode, execute CPU cycle [usually 4 words - opCode, rx, ry, mem]
      */
     cycle(): void { return this.execute(this.fetch()); }
 }
