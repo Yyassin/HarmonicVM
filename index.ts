@@ -1,6 +1,6 @@
 import { createMemory } from './src/assets/createMemory';
 import  CPU  from './src/assets/CPU';
-import { countToThree } from './src/assets/programs';
+import { branchSubroutine } from './src/assets/programs';
 import * as readline from 'readline';
 
 // 2^16 8-bit words
@@ -14,11 +14,11 @@ const cpu = new CPU(memory);
 
 // Load program to count to three in Mmem.
 // TODO: Instead of cycles, add a breakpoint instruction.
-const cycles = countToThree(writableBytes);
+const cycles = branchSubroutine(writableBytes);
 
 // Run the program.
-cpu.viewMemoryAt(cpu.getRegister('pc')); // next instruction(s)
-cpu.viewMemoryAt(0x0100);
+cpu.viewMemoryAt(cpu.getRegister('pc'), 8); // next instruction(s)
+cpu.viewMemoryAt(0xffff - 43, 44);
 
 /* Setup node readline to step through and see each instruction cycle */
 
@@ -32,6 +32,6 @@ const rl = readline.createInterface({
 rl.on('line', () => {
     cpu.cycle();
     cpu.debug();
-    cpu.viewMemoryAt(cpu.getRegister('pc')); // next instruction(s)
-    cpu.viewMemoryAt(0x0100);
+    cpu.viewMemoryAt(cpu.getRegister('pc'), 8); // next instruction(s)
+    cpu.viewMemoryAt(0xffff - 43, 44);
 })

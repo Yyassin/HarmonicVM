@@ -7,7 +7,7 @@ class CPU {
     #registerLabels: Array<string>;     // Names for general purpose 16-bit registers (GPRs).
     #registers: Memory;                 // Memory for the GPRs.
     #registersMap: Object;              // Map: Register Label -> Memory Location 
-    
+    #stackFrameSize: number;            // Size of the current stack frame.
     /**
      * Create a new CPU with the specified main memory.
      * @param memory Memory, this CPU's main memory module.
@@ -17,13 +17,15 @@ class CPU {
 
         /** Register labels
          *  'pc' -> program counter
+         *  'fp' -> frame pointer
+         *  'sp' -> stack pointer
          *  'acc' -> arithmetic accumulator
          *  'rx' -> general register
          **/
         this.#registerLabels = [
             'r0', 'r1', 'r2', 'r3',
             'r4', 'r5', 'r6', 'r7',
-            'acc', 'pc',
+            'acc', 'sp', 'fp', 'pc'
         ];
 
         // 16-bits or 2 bytes for each register
@@ -34,6 +36,15 @@ class CPU {
             map[label]  = idx * 2;
             return map;
         }, {});
+
+        this.#stackFrameSize = 0;
+
+        /* Set stack and frame pointer to end of mmem. */
+
+        // -2 since 0-index and 16-bit instructions: 2 bytes
+        // notice that the implementation decrements *after* insertion.
+        this.setRegister('sp', this.#memory.byteLength - 2);  // Storing 2 bytes, start at block [0xfffe, 0xffff]
+        this.setRegister('fp', this.#memory.byteLength - 2);
     }
 
     /**
@@ -48,19 +59,20 @@ class CPU {
 
     /**
      * View the byte at the specified address in main memory
-     * in addition to the 7 bytes that follow.
+     * in addition to the n bytes that follow.
      * 0x0f01: 0x04 0xab 0x7f ... 0x08 [8 words here]
      * @param address number, the address to inspect.
+     * @param n number, the number of bytes around address.
      */
-    viewMemoryAt(address: number): void {
-        // Arraylike: [undefined x 8].
-        // Get and format next 8 words starting with memory[address].
-        const nextEightBytes = Array.from({length: 8}, (_, i) =>
+    viewMemoryAt(address: number, n: number): void {
+        // Arraylike: [undefined x n].
+        // Get and format next n words starting with memory[address].
+        const nextNBytes = Array.from({length: n}, (_, i) =>
             this.#memory.getUint8(address + i)
         ).map(byte => `0x${byte.toString(16).padStart(2, '0')}`);
 
         // Print the memory address followed by contents in 8 words.
-        console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextEightBytes.join(' ')}`);
+        console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextNBytes.join(' ')}`);
     }
 
    /**
@@ -110,6 +122,74 @@ class CPU {
     };
 
     /**
+     * Get the register index from hex encoding in memory.
+     * Given 0x01 -> R1 -> index 2 (2nd set of bytes following R0).
+     * @returns number, the register index.
+     */
+    fetchRegIndex(): number { return (this.fetch() % this.#registerLabels.length) * 2; }
+
+    /**
+     * Push specified value to top of stack, then grow stack pointer (down).
+     * @param value number, the value to push to stack.
+     */
+    push(value: number): void {
+        const spAddress = this.getRegister('sp');
+        this.#memory.setUint16(spAddress, value);
+        this.setRegister('sp', spAddress - 2); // Stack grows down 2 bytes 16b.
+        this.#stackFrameSize += 2;
+    }
+
+    /**
+     * Pop top stack contents.
+     * @returns number, the popped contents.
+     */
+    pop(): number {
+        const spAddressPopped = this.getRegister('sp') + 2;
+        this.setRegister('sp', spAddressPopped);
+        this.#stackFrameSize -= 2;
+        return this.#memory.getUint16(spAddressPopped);
+    }
+
+    /**
+     * Push the current cpu state to the stack.
+     */
+    pushState(): void {
+        // Push contents of GPRs and PC to stack
+        this.#registerLabels.forEach((label: string) => {
+            if (['acc', 'sp', 'fp'].includes(label)) return;
+            console.log(label);
+            this.push(this.getRegister(label));                    
+        })
+
+        this.push(this.#stackFrameSize + 2);    // Account for this push.
+        // Frame pointer updated to new stack frame.
+        this.setRegister('fp', this.getRegister('sp'));
+        this.#stackFrameSize = 0;
+    }
+
+    popState(): void {
+        const framePointerAddress = this.getRegister('fp');
+        // Right above stack frame size.
+        this.setRegister('sp', framePointerAddress);
+        this.#stackFrameSize = this.pop();
+        const stackFrameSize = this.#stackFrameSize;
+
+        // Pop PC then GPRs back.
+        this.#registerLabels.slice().reverse().forEach((label: string) => {
+            if (['acc', 'sp', 'fp'].includes(label)) return;
+            
+            this.setRegister(label, this.pop());                    
+        })
+
+        // Subroutine called with args, numberArgs.
+        const numberArgs = this.pop();
+        this.setRegister('sp', this.getRegister('sp') + numberArgs * 2);
+
+        // Reset to the previous frame.
+        this.setRegister('fp', framePointerAddress + stackFrameSize);
+    }
+
+    /**
      * Decode and execute the specified 8-bit instruction.
      * @param instruction number, the 8-bit instruction to execute.
      */
@@ -118,52 +198,47 @@ class CPU {
             // Move 16b literal into destination register.
             case instructions.MOV_LIT_RD: {
                 // Get the index and account for byte offset: each Reg is 2 bytes.
-                const registerIdx = (this.fetch() % this.#registerLabels.length) * 2; 
+                const registerIdx = this.fetchRegIndex();
                 
                 const literal = this.fetch16();
-                this.#registers.setUint16(registerIdx, literal);
-                return;
+                return this.#registers.setUint16(registerIdx, literal);
             }
 
             // Move source register contents to destination register.
             case instructions.MOV_RS_RD: {
                 // Get register indices
-                const registerSrc = (this.fetch() % this.#registerLabels.length) * 2; 
-                const registerDest = (this.fetch() % this.#registerLabels.length) * 2; 
+                const registerSrc = this.fetchRegIndex();
+                const registerDest = this.fetchRegIndex();
                 const srcVal = this.#registers.getUint16(registerSrc);
-                this.#registers.setUint16(registerDest, srcVal);
-                return;
+                return this.#registers.setUint16(registerDest, srcVal);
             }
 
             // Store contents of source register into main memory[imm16].
             case instructions.STR_RS_MEM: {
                 // Get register index
-                const registerSrc = (this.fetch() % this.#registerLabels.length) * 2; 
+                const registerSrc = this.fetchRegIndex();
                 const memAddress = this.fetch16();
                 const value = this.#registers.getUint16(registerSrc);
-                this.#memory.setUint16(memAddress, value);
-                return;
+                return this.#memory.setUint16(memAddress, value);
             }
 
             // Load contents of main memory[imm16] in destination register.
             case instructions.LDR_MEM_RD: {
                 // Get register index
-                const registerSrc = (this.fetch() % this.#registerLabels.length) * 2; 
+                const registerSrc = this.fetchRegIndex();
                 const memAddress = this.fetch16();
                 const value = this.#memory.getUint16(memAddress);
-                this.#registers.setUint16(registerSrc, value);
-                return;
+                return this.#registers.setUint16(registerSrc, value);
             }
 
             // Add register x to register y.
             case instructions.ADD_RX_RY: {
                 // 8bit : [0 -> 7], No Instruction Register here
-                const rx = this.fetch();
-                const ry = this.fetch();
-                const registerValueX = this.#registers.getUint16(rx * 2);
-                const registerValueY = this.#registers.getUint16(ry * 2);
-                this.setRegister('acc', registerValueX + registerValueY);
-                return;
+                const rx = this.fetchRegIndex();
+                const ry = this.fetchRegIndex();
+                const registerValueX = this.#registers.getUint16(rx);
+                const registerValueY = this.#registers.getUint16(ry);
+                return this.setRegister('acc', registerValueX + registerValueY);
             }
 
             // Branch to specified address iff literal != [acc]
@@ -174,6 +249,47 @@ class CPU {
                     this.setRegister('pc', branchAddress);
                 return;
             }
+
+            // Push a literal to top of stack.
+            case instructions.PSH_LIT: {
+                const value = this.fetch16();
+                return this.push(value);
+            }
+
+            // Push the contents of source register to top of stack.
+            case instructions.PSH_RS: {
+                const registerSrc = this.fetchRegIndex();
+                const value = this.#registers.getUint16(registerSrc);
+                return this.push(value);
+            }
+            
+            // Pop contents at top of stack in destination register.
+            case instructions.POP: {
+                const registerDest = this.fetchRegIndex();
+                return this.#registers.setUint16(registerDest, this.pop());
+            }
+
+            // Branch to subroutine at literal address
+            case instructions.CAL_LIT: {
+                const branchAddress = this.fetch16();
+                this.pushState();
+                // Branch to subroutine
+                return this.setRegister('pc', branchAddress);
+            }
+
+             // Branch to subroutine at address in register
+             case instructions.CAL_LIT: {
+                const registerIdx = this.fetchRegIndex();
+                const branchAddress = this.#registers.getUint16(registerIdx);
+                this.pushState();
+                // Branch to subroutine
+                return this.setRegister('pc', branchAddress);
+            }
+
+            // Return from subroutine
+            case instructions.RET: {
+                return this.popState();
+           }
         }
     }
 
