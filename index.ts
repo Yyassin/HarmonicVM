@@ -1,37 +1,63 @@
 import { createMemory } from './src/assets/createMemory';
 import  CPU  from './src/assets/CPU';
-import { branchSubroutine } from './src/assets/programs';
+import MemoryMapper from './src/assets/MemoryMapper';
 import * as readline from 'readline';
+import { createScreenDevice } from './src/assets/screenDevice';
+import { screenDeviceProgram } from './src/assets/programs';
+
+// const print = x => console.log(`0b${x.toString(2).padStart(8, '0')}`);
+// let state = 0b10101000;
+// const mask = 0x7;
+
+// print(state);
+// for (let i = 0; i < 10; i++) {
+//     state = (state & ~mask) | ((((state | ~mask) + 1) % 8) & mask);
+//     print(state);
+// }
+
+
 
 // 2^16 8-bit words
 const memory = createMemory(65536);
 const writableBytes = new Uint8Array(memory.buffer); // Each cell is a byte
 
 // Create cpu.
-const cpu = new CPU(memory);
+const memoryMapper = new MemoryMapper();
+const cpu = new CPU(memoryMapper);
+
+// Map the entire address space
+memoryMapper.map(memory, 0x0000, 0xffff);
+
+// Map 256 B of address space to screen device;
+// Remaps to 0 to ff
+memoryMapper.map(createScreenDevice(), 0x3000, 0x30ff, true);
 
 /* Create instruction set */
 
 // Load program to count to three in Mmem.
 // TODO: Instead of cycles, add a breakpoint instruction.
-const cycles = branchSubroutine(writableBytes);
+screenDeviceProgram(writableBytes);
+
+cpu.run();
 
 // Run the program.
-cpu.viewMemoryAt(cpu.getRegister('pc'), 8); // next instruction(s)
-cpu.viewMemoryAt(0xffff - 43, 44);
+// cpu.viewMemoryAt(cpu.getRegister('pc'), 8); // next instruction(s)
+// cpu.viewMemoryAt(0xffff - 43, 44);
 
 /* Setup node readline to step through and see each instruction cycle */
 
 // Set readline to recognize cmd input and provide output.
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-});
+// const rl = readline.createInterface({
+//     input: process.stdin,
+//     output: process.stdout,
+// });
 
-// Create a 'newline' event. On event, step.
-rl.on('line', () => {
-    cpu.cycle();
-    cpu.debug();
-    cpu.viewMemoryAt(cpu.getRegister('pc'), 8); // next instruction(s)
-    cpu.viewMemoryAt(0xffff - 43, 44);
-})
+// // Create a 'newline' event. On event, step.
+// rl.on('line', () => {
+//     cpu.cycle();
+//     //cpu.debug();
+//     //cpu.viewMemoryAt(cpu.getRegister('pc'), 8); // next instruction(s)
+//     //cpu.viewMemoryAt(0xffff - 43, 44);
+// });
+
+

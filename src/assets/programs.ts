@@ -237,3 +237,30 @@ export const branchSubroutine = (writableBytes: Uint8Array): void => {
 
     writableBytes[i++] = instructions.RET;
 }
+
+export const screenDeviceProgram = (writableBytes: Uint8Array): void => {
+    const writeCharToScreen = (char, command, position) => {
+        writableBytes[i++] = instructions.MOV_LIT_RD;
+        writableBytes[i++] = reg.R1;
+        writableBytes[i++] = command;
+        writableBytes[i++] = char.charCodeAt(0);
+
+        writableBytes[i++] = instructions.STR_RS_MEM;
+        writableBytes[i++] = reg.R1;
+        writableBytes[i++] = 0x30;
+        writableBytes[i++] = position;
+    }
+
+    writeCharToScreen(" ", 0xff, 0); // Clear screen
+    
+    for (let idx = 0; idx <= 0xff; idx++) {
+        const command = idx % 2 === 0 ?
+            0x01
+            :
+            0x02;
+
+        writeCharToScreen("*", command, idx);
+    }
+
+    writableBytes[i++] = instructions.HLT;
+}
