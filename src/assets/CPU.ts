@@ -237,7 +237,7 @@ class CPU {
             }
 
             // [R2] <- Mmem[R1]
-            case instructions.STR_REG_IND_REG: {
+            case instructions.LDR_REG_IND_REG: {
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
                 const ptr = this.#registers.getUint16(r1);
@@ -246,7 +246,7 @@ class CPU {
             }
 
             // [RD] <- Mmem[RS + offset] *Unsigned offset
-            case instructions.STR_LIT_OFF_REG: {
+            case instructions.LDR_LIT_OFF_REG: {
                 const baseAddress = this.fetch16(); // Offset
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
@@ -280,11 +280,12 @@ class CPU {
                 return this.setRegister('acc', registerValue - literal);
             }
 
-            case instructions.SUB_REG_LIT: {
+            case instructions.SUB_REG_REG: {
                 const r1 = this.fetchRegIndex();
-                const literal = this.fetch16();
-                const registerValue = this.#registers.getUint16(r1);
-                return this.setRegister('acc', literal - registerValue);
+                const r2 = this.fetchRegIndex();
+                const register1Value = this.#registers.getUint16(r1);
+                const register2Value = this.#registers.getUint16(r2);
+                return this.setRegister('acc', register1Value - register2Value);
             }
 
             case instructions.SUB_RX_RY: {
