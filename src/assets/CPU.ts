@@ -1,6 +1,7 @@
 import { createMemory } from './createMemory';
 import type { IMemory, Memory } from '../types';
 import instructions from './instructions';
+import instructionsMeta from './instructions';
 
 class CPU {
     #memory: IMemory;                    // Main memory [8-bit words]
@@ -195,7 +196,7 @@ class CPU {
     execute(instruction: number): boolean | void {
         switch(instruction) {
             // Move 16b literal into destination register.
-            case instructions.MOV_LIT_RD: {
+            case instructionsMeta.MOV_LIT_RD.opCode: {
                 // Get the index and account for byte offset: each Reg is 2 bytes.
                 const registerIdx = this.fetchRegIndex();
                 
@@ -204,7 +205,7 @@ class CPU {
             }
 
             // Move source register contents to destination register.
-            case instructions.MOV_RS_RD: {
+            case instructionsMeta.MOV_RS_RD.opCode: {
                 // Get register indices
                 const registerSrc = this.fetchRegIndex();
                 const registerDest = this.fetchRegIndex();
@@ -213,7 +214,7 @@ class CPU {
             }
 
             // Store contents of source register into main memory[imm16].
-            case instructions.STR_RS_MEM: {
+            case instructionsMeta.STR_RS_MEM.opCode: {
                 // Get register index
                 const registerSrc = this.fetchRegIndex();
                 const memAddress = this.fetch16();
@@ -221,14 +222,14 @@ class CPU {
                 return this.#memory.setUint16(memAddress, value);
             }
 
-            case instructions.STR_LIT_MEM: {
+            case instructionsMeta.STR_LIT_MEM.opCode: {
                 const value  = this.fetch16();
                 const memAddress = this.fetch16();
                 return this.#memory.setUint16(memAddress, value);
             }
 
             // Load contents of main memory[imm16] in destination register.
-            case instructions.LDR_MEM_RD: {
+            case instructionsMeta.LDR_MEM_RD.opCode: {
                 // Get register index
                 const registerSrc = this.fetchRegIndex();
                 const memAddress = this.fetch16();
@@ -237,7 +238,7 @@ class CPU {
             }
 
             // [R2] <- Mmem[R1]
-            case instructions.LDR_REG_IND_REG: {
+            case instructionsMeta.LDR_REG_IND_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
                 const ptr = this.#registers.getUint16(r1);
@@ -246,7 +247,7 @@ class CPU {
             }
 
             // [RD] <- Mmem[RS + offset] *Unsigned offset
-            case instructions.LDR_LIT_OFF_REG: {
+            case instructionsMeta.LDR_LIT_OFF_REG.opCode: {
                 const baseAddress = this.fetch16(); // Offset
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
@@ -256,7 +257,7 @@ class CPU {
             }
 
             // Add register x to register y.
-            case instructions.ADD_RX_RY: {
+            case instructionsMeta.ADD_RX_RY.opCode: {
                 // 8bit : [0 -> 7], No Instruction Register here
                 const rx = this.fetchRegIndex();
                 const ry = this.fetchRegIndex();
@@ -265,7 +266,7 @@ class CPU {
                 return this.setRegister('acc', registerValueX + registerValueY);
             }
 
-            case instructions.ADD_LIT_REG: {
+            case instructionsMeta.ADD_LIT_REG.opCode: {
                 const literal = this.fetch16();
                 const r1 = this.fetchRegIndex();
                 const registerValue = this.#registers.getUint16(r1);
@@ -273,22 +274,21 @@ class CPU {
             }
 
             //* unsigned
-            case instructions.SUB_LIT_REG: {
+            case instructionsMeta.SUB_LIT_REG.opCode: {
                 const literal = this.fetch16();
                 const r1 = this.fetchRegIndex();
                 const registerValue = this.#registers.getUint16(r1);
                 return this.setRegister('acc', registerValue - literal);
             }
 
-            case instructions.SUB_REG_REG: {
+            case instructionsMeta.SUB_REG_LIT.opCode: {
                 const r1 = this.fetchRegIndex();
-                const r2 = this.fetchRegIndex();
-                const register1Value = this.#registers.getUint16(r1);
-                const register2Value = this.#registers.getUint16(r2);
-                return this.setRegister('acc', register1Value - register2Value);
+                const lit = this.fetch16();
+                const registerValue = this.#registers.getUint16(r1);
+                return this.setRegister('acc', lit - registerValue);
             }
 
-            case instructions.SUB_RX_RY: {
+            case instructionsMeta.SUB_RX_RY.opCode: {
                 const rx = this.fetchRegIndex();
                 const ry = this.fetchRegIndex();
                 const registerValueX = this.#registers.getUint16(rx);
@@ -296,7 +296,7 @@ class CPU {
                 return this.setRegister('acc', registerValueX - registerValueY);
             }
 
-            case instructions.MUL_LIT_REG: {
+            case instructionsMeta.MUL_LIT_REG.opCode: {
                 const literal = this.fetch16();
                 const r1 = this.fetchRegIndex();
                 const registerValue = this.#registers.getUint16(r1);
@@ -304,7 +304,7 @@ class CPU {
             }
 
             // * unsigned
-            case instructions.MUL_REG_REG: {
+            case instructionsMeta.MUL_REG_REG.opCode: {
                 const rx = this.fetchRegIndex();
                 const ry = this.fetchRegIndex();
                 const registerValueX = this.#registers.getUint16(rx);
@@ -312,27 +312,27 @@ class CPU {
                 return this.setRegister('acc', registerValueX * registerValueY);
             }
 
-            case instructions.INC_REG: {
+            case instructionsMeta.INC_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const registerValue = this.#registers.getUint16(r1);
                 return this.#registers.setUint16(r1, registerValue + 1);
             }
 
-            case instructions.DEC_REG: {
+            case instructionsMeta.DEC_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const registerValue = this.#registers.getUint16(r1);
                 return this.#registers.setUint16(r1, registerValue - 1);
             }
 
             // in place
-            case instructions.LSL_REG_LIT: {
+            case instructionsMeta.LSL_REG_LIT.opCode: {
                 const r1 = this.fetchRegIndex();
                 const literal = this.fetch16();
                 const registerValue = this.#registers.getUint16(r1);
                 return this.#registers.setUint16(r1, registerValue << literal);
             }
 
-            case instructions.LSL_REG_REG: {
+            case instructionsMeta.LSL_REG_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
                 const register1Value = this.#registers.getUint16(r1);
@@ -340,14 +340,14 @@ class CPU {
                 return this.#registers.setUint16(r1, register1Value << register2Value);
             }
 
-            case instructions.LSR_REG_LIT: {
+            case instructionsMeta.LSR_REG_LIT.opCode: {
                 const r1 = this.fetchRegIndex();
                 const literal = this.fetch16();
                 const registerValue = this.#registers.getUint16(r1);
                 return this.#registers.setUint16(r1, registerValue >> literal);
             }
 
-            case instructions.LSR_REG_REG: {
+            case instructionsMeta.LSR_REG_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
                 const register1Value = this.#registers.getUint16(r1);
@@ -355,14 +355,14 @@ class CPU {
                 return this.#registers.setUint16(r1, register1Value >> register2Value);
             }
 
-            case instructions.AND_REG_LIT: {
+            case instructionsMeta.AND_REG_LIT.opCode: {
                 const r1 = this.fetchRegIndex();
                 const literal = this.fetch16();
                 const registerValue = this.#registers.getUint16(r1);
                 return this.setRegister('acc', registerValue & literal);
             }
 
-            case instructions.AND_REG_REG: {
+            case instructionsMeta.AND_REG_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
                 const register1Value = this.#registers.getUint16(r1);
@@ -370,14 +370,14 @@ class CPU {
                 return this.setRegister('acc', register1Value & register2Value);
             }
 
-            case instructions.OR_REG_LIT: {
+            case instructionsMeta.OR_REG_LIT.opCode: {
                 const r1 = this.fetchRegIndex();
                 const literal = this.fetch16();
                 const registerValue = this.#registers.getUint16(r1);
                 return this.setRegister('acc', registerValue | literal);
             }
 
-            case instructions.OR_REG_REG: {
+            case instructionsMeta.OR_REG_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
                 const register1Value = this.#registers.getUint16(r1);
@@ -385,14 +385,14 @@ class CPU {
                 return this.setRegister('acc', register1Value | register2Value);
             }
 
-            case instructions.XOR_REG_LIT: {
+            case instructionsMeta.XOR_REG_LIT.opCode: {
                 const r1 = this.fetchRegIndex();
                 const literal = this.fetch16();
                 const registerValue = this.#registers.getUint16(r1);
                 return this.setRegister('acc', registerValue ^ literal);
             }
 
-            case instructions.XOR_REG_REG: {
+            case instructionsMeta.XOR_REG_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
                 const register1Value = this.#registers.getUint16(r1);
@@ -400,7 +400,7 @@ class CPU {
                 return this.setRegister('acc', register1Value ^ register2Value);
             }
 
-            case instructions.NOT: {
+            case instructionsMeta.NOT.opCode: {
                 const r1 = this.fetchRegIndex();
                 const registerValue = this.#registers.getUint16(r1);
 
@@ -411,7 +411,7 @@ class CPU {
             }
 
             // Branch to specified address iff literal != [acc]
-            case instructions.JMP_NOT_EQ: {
+            case instructionsMeta.JMP_NOT_EQ.opCode: {
                 const literal = this.fetch16();
                 const branchAddress = this.fetch16();
                 if (literal !== this.getRegister('acc'))
@@ -419,7 +419,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JNE_REG: {
+            case instructionsMeta.JNE_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const value = this.#registers.getUint16(r1);
                 const branchAddress = this.fetch16();
@@ -428,7 +428,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JEQ_LIT: {
+            case instructionsMeta.JEQ_LIT.opCode: {
                 const literal = this.fetch16();
                 const branchAddress = this.fetch16();
                 if (literal === this.getRegister('acc'))
@@ -436,7 +436,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JEQ_REG: {
+            case instructionsMeta.JEQ_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const value = this.#registers.getUint16(r1);
                 const branchAddress = this.fetch16();
@@ -445,7 +445,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JLT_LIT: {
+            case instructionsMeta.JLT_LIT.opCode: {
                 const literal = this.fetch16();
                 const branchAddress = this.fetch16();
                 if (literal < this.getRegister('acc'))
@@ -453,7 +453,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JLT_REG: {
+            case instructionsMeta.JLT_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const value = this.#registers.getUint16(r1);
                 const branchAddress = this.fetch16();
@@ -462,7 +462,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JGT_LIT: {
+            case instructionsMeta.JGT_LIT.opCode: {
                 const literal = this.fetch16();
                 const branchAddress = this.fetch16();
                 if (literal > this.getRegister('acc'))
@@ -470,7 +470,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JGT_REG: {
+            case instructionsMeta.JGT_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const value = this.#registers.getUint16(r1);
                 const branchAddress = this.fetch16();
@@ -479,7 +479,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JLE_LIT: {
+            case instructionsMeta.JLE_LIT.opCode: {
                 const literal = this.fetch16();
                 const branchAddress = this.fetch16();
                 if (literal <= this.getRegister('acc'))
@@ -487,7 +487,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JLE_REG: {
+            case instructionsMeta.JLE_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const value = this.#registers.getUint16(r1);
                 const branchAddress = this.fetch16();
@@ -496,7 +496,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JGE_LIT: {
+            case instructionsMeta.JGE_LIT.opCode: {
                 const literal = this.fetch16();
                 const branchAddress = this.fetch16();
                 if (literal >= this.getRegister('acc'))
@@ -504,7 +504,7 @@ class CPU {
                 return;
             }
 
-            case instructions.JGE_REG: {
+            case instructionsMeta.JGE_REG.opCode: {
                 const r1 = this.fetchRegIndex();
                 const value = this.#registers.getUint16(r1);
                 const branchAddress = this.fetch16();
@@ -514,26 +514,26 @@ class CPU {
             }
 
             // Push a literal to top of stack.
-            case instructions.PSH_LIT: {
+            case instructionsMeta.PSH_LIT.opCode: {
                 const value = this.fetch16();
                 return this.push(value);
             }
 
             // Push the contents of source register to top of stack.
-            case instructions.PSH_RS: {
+            case instructionsMeta.PSH_RS.opCode: {
                 const registerSrc = this.fetchRegIndex();
                 const value = this.#registers.getUint16(registerSrc);
                 return this.push(value);
             }
             
             // Pop contents at top of stack in destination register.
-            case instructions.POP: {
+            case instructionsMeta.POP.opCode: {
                 const registerDest = this.fetchRegIndex();
                 return this.#registers.setUint16(registerDest, this.pop());
             }
 
             // Branch to subroutine at literal address
-            case instructions.CAL_LIT: {
+            case instructionsMeta.CAL_LIT.opCode: {
                 const branchAddress = this.fetch16();
                 this.pushState();
                 // Branch to subroutine
@@ -541,7 +541,7 @@ class CPU {
             }
 
              // Branch to subroutine at address in register
-             case instructions.CAL_LIT: {
+             case instructionsMeta.CAL_LIT.opCode: {
                 const registerIdx = this.fetchRegIndex();
                 const branchAddress = this.#registers.getUint16(registerIdx);
                 this.pushState();
@@ -550,11 +550,11 @@ class CPU {
             }
 
             // Return from subroutine
-            case instructions.RET: {
+            case instructionsMeta.RET.opCode: {
                 return this.popState();
            }
 
-           case instructions.HLT: {
+           case instructionsMeta.HLT.opCode: {
                return true;
            }
         }

@@ -1,3 +1,36 @@
+import { litReg } from "../assembler/parser/instructions/generic";
+
+export enum InstructionTypes {
+    litReg="litReg",
+    regLit="regLit",
+    regLit8="regLit8",
+    regReg="regReg",
+    regMem="regMem",
+    memReg="memReg", 
+    litMem="litMem",
+    regIndReg="regIndReg",
+    litOffReg="litOffReg",
+    noArgs="noArgs",
+    singleReg="singleReg",
+    singleLit="singleLit"
+};
+
+type InstructionSize = {[key in InstructionTypes]: number };
+const instructionSize: InstructionSize = {
+    [InstructionTypes.litReg]: 4,
+    [InstructionTypes.regLit]: 4,
+    [InstructionTypes.regLit8]: 3,
+    [InstructionTypes.regReg]: 3,
+    [InstructionTypes.regMem]: 4,
+    [InstructionTypes.memReg]: 4,
+    [InstructionTypes.litMem]: 5,
+    [InstructionTypes.regIndReg]: 3,
+    [InstructionTypes.litOffReg]: 5,
+    [InstructionTypes.noArgs]: 1,
+    [InstructionTypes.singleReg]: 2,
+    [InstructionTypes.singleLit]: 3,
+}
+
 export enum InstructionMnemonic {
     MOV="mov",
     // LDR="ldr",
@@ -42,8 +75,8 @@ export enum Instruction {
     
     ADD_RX_RY=          "ADD_RX_RY",
     ADD_LIT_REG=        "ADD_LIT_REG",
+    SUB_REG_LIT=        "SUB_REG_LIT",
     SUB_LIT_REG=        "SUB_LIT_REG",
-    SUB_REG_REG=        "SUB_REG_REG",
     SUB_RX_RY=          "SUB_RX_RY",
     INC_REG=            "INC_REG",
     DEC_REG=            "DEC_REG",
@@ -99,7 +132,8 @@ export const instructionType = {
         litReg:  Instruction.ADD_LIT_REG
     },
     [InstructionMnemonic.SUB]: {
-        regReg:  Instruction.SUB_REG_REG,
+        regReg:  Instruction.SUB_RX_RY,
+        regLit:  Instruction.SUB_REG_LIT,
         litReg:  Instruction.SUB_LIT_REG
     },
     [InstructionMnemonic.MUL]: {
@@ -120,11 +154,11 @@ export const instructionType = {
     },
     [InstructionMnemonic.LSL]: {
         regReg: Instruction.LSL_REG_REG,
-        litReg: Instruction.LSL_REG_LIT
+        regLit: Instruction.LSL_REG_LIT
     },
     [InstructionMnemonic.LSR]: {
         regReg: Instruction.LSR_REG_REG,
-        litReg: Instruction.LSR_REG_LIT
+        regLit: Instruction.LSR_REG_LIT
     },
     [InstructionMnemonic.INC]: {
         singleReg: Instruction.INC_REG
@@ -186,57 +220,302 @@ export const instructionType = {
     }
 } as const;
 
-const instructions: Record<Instruction, number> = {
-    [Instruction.MOV_LIT_RD]:         0x10,
-    [Instruction.MOV_RS_RD]:          0x11,
-    [Instruction.STR_RS_MEM]:         0x12,
-    [Instruction.LDR_MEM_RD]:         0x13,
-    [Instruction.STR_LIT_MEM]:        0x1B,
-    [Instruction.LDR_REG_IND_REG]:    0x1C,
-    [Instruction.LDR_LIT_OFF_REG]:    0x1D,
-    
-    [Instruction.ADD_RX_RY]:          0x14,
-    [Instruction.ADD_LIT_REG]:        0x3F,
-    [Instruction.SUB_LIT_REG]:        0x16,
-    [Instruction.SUB_REG_REG]:        0x1E,
-    [Instruction.SUB_RX_RY]:          0x1F,
-    [Instruction.INC_REG]:            0x35,
-    [Instruction.DEC_REG]:            0x36,
-    [Instruction.MUL_LIT_REG]:        0x20,
-    [Instruction.MUL_REG_REG]:        0x21,
+type InstructionMeta = {
+    [key in Instruction]: {
+        instruction: Instruction,
+        opCode: number,
+        type: InstructionTypes,
+        size: number,
+        mnemonic: InstructionMnemonic
+    }
+};
 
-    [Instruction.LSL_REG_LIT]:        0x26,
-    [Instruction.LSL_REG_REG]:        0x27,
-    [Instruction.LSR_REG_LIT]:        0x2A,
-    [Instruction.LSR_REG_REG]:        0x2B,
-    [Instruction.AND_REG_LIT]:        0x2E,   
-    [Instruction.AND_REG_REG]:        0x2F,
-    [Instruction.OR_REG_LIT]:         0x30,
-    [Instruction.OR_REG_REG]:         0x31,
-    [Instruction.XOR_REG_LIT]:        0x32,
-    [Instruction.XOR_REG_REG]:        0x33,
-    [Instruction.NOT]:                0x34,   
+const getMeta = (instructionType: InstructionTypes) => ({
+    type: InstructionTypes[instructionType],
+    size: instructionSize[instructionType]
+});
 
-    [Instruction.JMP_NOT_EQ]:         0x15,
-    [Instruction.JNE_REG]:            0x40,
-    [Instruction.JEQ_REG]:            0x3E,
-    [Instruction.JEQ_LIT]:            0x41,
-    [Instruction.JLT_REG]:            0x42,   
-    [Instruction.JLT_LIT]:            0x43,
-    [Instruction.JGT_REG]:            0x44,
-    [Instruction.JGT_LIT]:            0x45,
-    [Instruction.JLE_REG]:            0x46,
-    [Instruction.JLE_LIT]:            0x47,
-    [Instruction.JGE_REG]:            0x48,
-    [Instruction.JGE_LIT]:            0x49,
+const instructionsMeta: InstructionMeta = {
+    [Instruction.MOV_LIT_RD]: {
+        instruction: Instruction.MOV_LIT_RD,
+        opCode: 0x10,
+        ...getMeta(InstructionTypes.litReg),
+        mnemonic: InstructionMnemonic.MOV
+    },
+    [Instruction.MOV_RS_RD]: {
+        instruction: Instruction.MOV_RS_RD,
+        opCode: 0x11,
+        ...getMeta(InstructionTypes.regReg),
+        mnemonic: InstructionMnemonic.MOV
+    },
+    [Instruction.STR_RS_MEM]: {
+        instruction: Instruction.STR_RS_MEM,
+        opCode: 0x12,
+        ...getMeta(InstructionTypes.regMem),
+        mnemonic: InstructionMnemonic.MOV
+    },
+    [Instruction.LDR_MEM_RD]: {
+        instruction: Instruction.LDR_MEM_RD,
+        opCode: 0x13,
+        ...getMeta(InstructionTypes.memReg),
+        mnemonic: InstructionMnemonic.MOV
+    },
+    [Instruction.STR_LIT_MEM]: {
+        instruction: Instruction.STR_LIT_MEM,
+        opCode: 0x1B,
+        ...getMeta(InstructionTypes.litMem),
+        mnemonic: InstructionMnemonic.MOV
+    },
+    [Instruction.LDR_REG_IND_REG]: {
+        instruction: Instruction.LDR_REG_IND_REG,
+        opCode: 0x1C,
+        ...getMeta(InstructionTypes.regIndReg),
+        mnemonic: InstructionMnemonic.MOV
+    },
+    [Instruction.LDR_LIT_OFF_REG]: {
+        instruction: Instruction.LDR_LIT_OFF_REG,
+        opCode: 0x1D,
+        ...getMeta(InstructionTypes.litOffReg),
+        mnemonic: InstructionMnemonic.MOV
+    },
 
-    [Instruction.PSH_LIT]:            0x17,
-    [Instruction.PSH_RS]:             0x18,
-    [Instruction.POP]:                0x1A,
-    [Instruction.CAL_LIT]:            0x5E,
-    [Instruction.CAL_RS]:             0x5F,
-    [Instruction.RET]:                0x60,
-    [Instruction.HLT]:                0xFF
-} as const;
+    [Instruction.ADD_RX_RY]: {
+        instruction: Instruction.ADD_RX_RY,
+        opCode: 0x14,
+        ...getMeta(InstructionTypes.regReg),
+        mnemonic: InstructionMnemonic.ADD
+    },
+    [Instruction.ADD_LIT_REG]: {
+        instruction: Instruction.ADD_LIT_REG,
+        opCode: 0x3F,
+        ...getMeta(InstructionTypes.litReg),
+        mnemonic: InstructionMnemonic.ADD
+    },
+    [Instruction.SUB_LIT_REG]: {
+        instruction: Instruction.SUB_LIT_REG,
+        opCode: 0x16,
+        ...getMeta(InstructionTypes.litReg),
+        mnemonic: InstructionMnemonic.SUB
+    },
+    [Instruction.SUB_REG_LIT]: {
+        instruction: Instruction.SUB_REG_LIT,
+        opCode: 0x1E,
+        ...getMeta(InstructionTypes.regLit),
+        mnemonic: InstructionMnemonic.SUB
+    },
+    [Instruction.SUB_RX_RY]: {
+        instruction: Instruction.SUB_RX_RY,
+        opCode: 0x1F,
+        ...getMeta(InstructionTypes.regReg),
+        mnemonic: InstructionMnemonic.SUB
+    },
+    [Instruction.INC_REG]: {
+        instruction: Instruction.INC_REG,
+        opCode: 0x35,
+        ...getMeta(InstructionTypes.singleReg),
+        mnemonic: InstructionMnemonic.INC
+    },
+    [Instruction.DEC_REG]: {
+        instruction: Instruction.DEC_REG,
+        opCode: 0x36,
+        ...getMeta(InstructionTypes.singleReg),
+        mnemonic: InstructionMnemonic.DEC
+    },
+    [Instruction.MUL_LIT_REG]: {
+        instruction: Instruction.MUL_LIT_REG,
+        opCode: 0x20,
+        ...getMeta(InstructionTypes.litReg),
+        mnemonic: InstructionMnemonic.MUL
+    },
+    [Instruction.MUL_REG_REG]: {
+        instruction: Instruction.MUL_REG_REG,
+        opCode: 0x21,
+        ...getMeta(InstructionTypes.regReg),
+        mnemonic: InstructionMnemonic.MUL
+    },
 
-export default instructions;
+    [Instruction.LSL_REG_LIT]: {
+        instruction: Instruction.LSL_REG_LIT,
+        opCode: 0x26,
+        ...getMeta(InstructionTypes.regLit),
+        mnemonic: InstructionMnemonic.LSL
+    },
+    [Instruction.LSL_REG_REG]: {
+        instruction: Instruction.LSL_REG_REG,
+        opCode: 0x27,
+        ...getMeta(InstructionTypes.regReg),
+        mnemonic: InstructionMnemonic.LSL
+    },
+    [Instruction.LSR_REG_LIT]: {
+        instruction: Instruction.LSL_REG_LIT,
+        opCode: 0x2A,
+        ...getMeta(InstructionTypes.regLit),
+        mnemonic: InstructionMnemonic.LSR
+    },
+    [Instruction.LSR_REG_REG]: {
+        instruction: Instruction.LSR_REG_REG,
+        opCode: 0x2B,
+        ...getMeta(InstructionTypes.regReg),
+        mnemonic: InstructionMnemonic.LSR
+    },
+    [Instruction.AND_REG_LIT]: {
+        instruction: Instruction.AND_REG_LIT,
+        opCode: 0x2E,
+        ...getMeta(InstructionTypes.regLit),
+        mnemonic: InstructionMnemonic.AND
+    },
+    [Instruction.AND_REG_REG]: {
+        instruction: Instruction.AND_REG_REG,
+        opCode: 0x2F,
+        ...getMeta(InstructionTypes.regReg),
+        mnemonic: InstructionMnemonic.AND
+    },
+    [Instruction.OR_REG_LIT]: {
+        instruction: Instruction.OR_REG_LIT,
+        opCode: 0x30,
+        ...getMeta(InstructionTypes.regLit),
+        mnemonic: InstructionMnemonic.OR
+    },
+    [Instruction.OR_REG_REG]: {
+        instruction: Instruction.OR_REG_REG,
+        opCode: 0x31,
+        ...getMeta(InstructionTypes.regReg),
+        mnemonic: InstructionMnemonic.OR
+    },
+    [Instruction.XOR_REG_LIT]: {
+        instruction: Instruction.XOR_REG_LIT,
+        opCode: 0x32,
+        ...getMeta(InstructionTypes.regLit),
+        mnemonic: InstructionMnemonic.XOR
+    },
+    [Instruction.XOR_REG_REG]: {
+        instruction: Instruction.XOR_REG_REG,
+        opCode: 0x33,
+        ...getMeta(InstructionTypes.regReg),
+        mnemonic: InstructionMnemonic.XOR
+    },
+    [Instruction.NOT]: {
+        instruction: Instruction.NOT,
+        opCode: 0x34,
+        ...getMeta(InstructionTypes.singleReg),
+        mnemonic: InstructionMnemonic.NOT
+    },
+
+    [Instruction.JMP_NOT_EQ]: {
+        instruction: Instruction.JMP_NOT_EQ,
+        opCode: 0x15,
+        ...getMeta(InstructionTypes.litMem),
+        mnemonic: InstructionMnemonic.JNE
+    },
+    [Instruction.JNE_REG]: {
+        instruction: Instruction.JNE_REG,
+        opCode: 0x40,
+        ...getMeta(InstructionTypes.regMem),
+        mnemonic: InstructionMnemonic.JNE
+    },
+    [Instruction.JEQ_REG]: {
+        instruction: Instruction.JEQ_REG,
+        opCode: 0x3E,
+        ...getMeta(InstructionTypes.regMem),
+        mnemonic: InstructionMnemonic.JEQ
+    },
+    [Instruction.JEQ_LIT]: {
+        instruction: Instruction.JEQ_LIT,
+        opCode: 0x41,
+        ...getMeta(InstructionTypes.litMem),
+        mnemonic: InstructionMnemonic.JEQ
+    },
+    [Instruction.JLT_REG]: {
+        instruction: Instruction.JLT_REG,
+        opCode: 0x42,
+        ...getMeta(InstructionTypes.regMem),
+        mnemonic: InstructionMnemonic.MUL
+    },
+    [Instruction.JLT_LIT]: {
+        instruction: Instruction.JLT_LIT,
+        opCode: 0x43,
+        ...getMeta(InstructionTypes.litMem),
+        mnemonic: InstructionMnemonic.MUL
+    },
+    [Instruction.JGT_REG]: {
+        instruction: Instruction.JGT_REG,
+        opCode: 0x44,
+        ...getMeta(InstructionTypes.regMem),
+        mnemonic: InstructionMnemonic.JGT
+    },
+    [Instruction.JGT_LIT]: {
+        instruction: Instruction.JGT_LIT,
+        opCode: 0x45,
+        ...getMeta(InstructionTypes.litMem),
+        mnemonic: InstructionMnemonic.JGT
+    },
+    [Instruction.JLE_REG]: {
+        instruction: Instruction.JLE_REG,
+        opCode: 0x46,
+        ...getMeta(InstructionTypes.regMem),
+        mnemonic: InstructionMnemonic.JLE
+    },
+    [Instruction.JLE_LIT]: {
+        instruction: Instruction.JLE_LIT,
+        opCode: 0x47,
+        ...getMeta(InstructionTypes.litMem),
+        mnemonic: InstructionMnemonic.JLE
+    },
+    [Instruction.JGE_REG]: {
+        instruction: Instruction.JGE_REG,
+        opCode: 0x48,
+        ...getMeta(InstructionTypes.regMem),
+        mnemonic: InstructionMnemonic.JGE
+    },
+    [Instruction.JGE_LIT]: {
+        instruction: Instruction.JGE_LIT,
+        opCode: 0x49,
+        ...getMeta(InstructionTypes.litMem),
+        mnemonic: InstructionMnemonic.JGE
+    },
+
+    [Instruction.PSH_LIT]: {
+        instruction: Instruction.PSH_LIT,
+        opCode: 0x17,
+        ...getMeta(InstructionTypes.singleLit),
+        mnemonic: InstructionMnemonic.PSH
+    },
+    [Instruction.PSH_RS]: {
+        instruction: Instruction.PSH_RS,
+        opCode: 0x18,
+        ...getMeta(InstructionTypes.singleReg),
+        mnemonic: InstructionMnemonic.PSH
+    },
+    [Instruction.POP]: {
+        instruction: Instruction.POP,
+        opCode: 0x1A,
+        ...getMeta(InstructionTypes.singleLit),
+        mnemonic: InstructionMnemonic.POP
+    },
+    [Instruction.CAL_LIT]: {
+        instruction: Instruction.CAL_LIT,
+        opCode: 0x5E,
+        ...getMeta(InstructionTypes.singleLit),
+        mnemonic: InstructionMnemonic.CAL
+    },
+    [Instruction.CAL_RS]: {
+        instruction: Instruction.CAL_RS,
+        opCode: 0x5F,
+        ...getMeta(InstructionTypes.singleReg),
+        mnemonic: InstructionMnemonic.CAL
+    },
+    [Instruction.RET]: {
+        instruction: Instruction.RET,
+        opCode: 0x60,
+        ...getMeta(InstructionTypes.noArgs),
+        mnemonic: InstructionMnemonic.RET
+    },
+    [Instruction.HLT]: {
+        instruction: Instruction.HLT,
+        opCode: 0xFF,
+        ...getMeta(InstructionTypes.noArgs),
+        mnemonic: InstructionMnemonic.HLT
+    },
+}
+
+export default instructionsMeta;

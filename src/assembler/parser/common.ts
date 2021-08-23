@@ -48,7 +48,15 @@ const operator = Arc.choice([
     Arc.char('*').map(parserTypes.opMultiply)
 ]);
 
-interface Expression {
+const label = Arc.sequenceOf([
+    validLabelIdentifier,
+    Arc.char(':'),
+    Arc.optionalWhitespace
+])
+.map(([labelName]) => labelName)
+.map(parserTypes.label);
+
+export interface Expression {
     type: ParserTypes,
     value: any
 }
@@ -113,5 +121,6 @@ export {
     validLabelIdentifier,
     variable,
     operator,
+    label,
     disambiguateOrderOfOperations
 };

@@ -14,5 +14,6 @@ export const parserTypes = {
     bracketedExpression:        asType(ParserTypes.BRACKETED_EXPRESSION),
     squareBracketedExpression:  asType(ParserTypes.SQUARE_BRACKETED_EXPRESSION),
 
+    label:                      asType(ParserTypes.LABEL),                            
     instruction:                asType(ParserTypes.INSTRUCTION)
 };

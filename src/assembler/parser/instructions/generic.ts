@@ -32,6 +32,28 @@ const litReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc
     });
 });
 
+const regLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+    yield upperOrLowerStr(mnemonic);
+    yield Arc.whitespace;
+
+    const arg2 = yield register;
+
+    yield Arc.optionalWhitespace;
+    yield Arc.char(',');
+    yield Arc.optionalWhitespace;
+
+    const arg1 = yield Arc.choice([
+        hexLiteral,
+        squareBracketExpr
+    ]);
+    yield Arc.optionalWhitespace;
+
+    return parserTypes.instruction({
+        instruction: type,
+        args: [arg1, arg2]
+    });
+});
+
 const regReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
@@ -176,7 +198,7 @@ const litOffReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
 
 const noArgs = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
     yield upperOrLowerStr(mnemonic);
-    yield Arc.whitespace;
+    yield Arc.optionalWhitespace;
 
     return parserTypes.instruction({
         instruction: type,
@@ -214,6 +236,7 @@ const singleLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
 
 export {
     litReg,
+    regLit,
     regReg,
     regMem,
     memReg,

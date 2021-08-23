@@ -10,7 +10,8 @@ import {
     litOffReg,
     noArgs,
     singleReg,
-    singleLit
+    singleLit,
+    regLit
 } from "./generic";
 
 const { 
@@ -56,7 +57,8 @@ const add = Arc.choice([
 
 const sub = Arc.choice([
     regReg(SUB, instructionType[SUB].regReg),
-    litReg(SUB, instructionType[SUB].litReg)
+    regLit(SUB, instructionType[SUB].regLit),
+    litReg(SUB, instructionType[SUB].litReg),
 ]);
 
 const mul = Arc.choice([
@@ -81,12 +83,12 @@ const xor = Arc.choice([
 
 const lsl = Arc.choice([
     regReg(LSL, instructionType[LSL].regReg),
-    litReg(LSL, instructionType[LSL].litReg)
+    regLit(LSL, instructionType[LSL].regLit)
 ]);
 
 const lsr = Arc.choice([
     regReg(LSR, instructionType[LSR].regReg),
-    litReg(LSR, instructionType[LSR].litReg)
+    regLit(LSR, instructionType[LSR].regLit)
 ]);
 
 const inc = singleReg(INC, instructionType[INC].singleReg);

@@ -1,6 +1,8 @@
-import { instruction } from "./instructions/instructions";
-import { deepLog } from "./util";
+import { instruction as instructionParser } from "./instructions/instructions";
+import * as Arc from "../../../node_modules/arcsecond/index";
+import { label } from "./common";
 
-const res = instruction.run("add [!loc], r1");
-deepLog(res);
+export const assemblyParser = Arc.many(
+    Arc.choice([instructionParser, label])
+);
 
