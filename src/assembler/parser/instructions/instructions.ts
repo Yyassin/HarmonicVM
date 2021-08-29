@@ -1,5 +1,5 @@
 import * as Arc from "../../../../node_modules/arcsecond/index";
-import { InstructionMnemonic, instructionType } from "../../../assets/instructions";
+import { InstructionMnemonic, instructionType } from "../../../cpu/instructions";
 import {
     regReg,
     litReg,

@@ -1,5 +1,3 @@
-import { litReg } from "../assembler/parser/instructions/generic";
-
 export enum InstructionTypes {
     litReg="litReg",
     regLit="regLit",

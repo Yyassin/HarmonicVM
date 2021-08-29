@@ -1,9 +1,9 @@
-import { createMemory } from './src/assets/createMemory';
-import  CPU  from './src/assets/CPU';
-import MemoryMapper from './src/assets/MemoryMapper';
+import { createMemory } from './src/cpu/createMemory';
+import  CPU  from './src/cpu/CPU';
+import MemoryMapper from './src/cpu/MemoryMapper';
 import * as readline from 'readline';
-import { createScreenDevice } from './src/assets/screenDevice';
-import { screenDeviceProgram } from './src/assets/programs';
+import { createScreenDevice } from './src/cpu/screenDevice';
+import { screenDeviceProgram } from './src/cpu/programs';
 
 // const print = x => console.log(`0b${x.toString(2).padStart(8, '0')}`);
 // let state = 0b10101000;

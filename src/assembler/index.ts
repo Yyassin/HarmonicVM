@@ -1,6 +1,6 @@
 import { assemblyParser as parser } from "./parser/index";
-import instructionsMeta, { InstructionTypes as I } from "../assets/instructions";
-import { reg } from "../assets/programs";
+import instructionsMeta, { InstructionTypes as I } from "../cpu/instructions";
+import { reg } from "../cpu/programs";
 import { instruction } from "./parser/instructions/instructions";
 import { deepLog, ParserTypes } from "./parser/util";
 import { parserTypes } from "./parser/parserTypes";

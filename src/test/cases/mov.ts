@@ -1,5 +1,5 @@
 import { ParserTypes } from "../../assembler/parser/util";
-import { Instruction } from "../../assets/instructions";
+import { Instruction } from "../../cpu/instructions";
 
 export const tests = [
     {

@@ -6,6 +6,7 @@
   "scripts": {
     "start": "ts-node index.ts",
     "start_assembler": "ts-node ./src/assembler/index.ts",
+    "start_parser": "ts-node ./src/assembler/parser/arc/index.ts",
     "test": "mocha -r ts-node/register ./src/test/**/*.test.ts"
   },
   "author": "",

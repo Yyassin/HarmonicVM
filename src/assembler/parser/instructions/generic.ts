@@ -1,5 +1,5 @@
 import * as Arc from "../../../../node_modules/arcsecond/index";
-import { Instruction, InstructionMnemonic } from "../../../assets/instructions";
+import { Instruction, InstructionMnemonic } from "../../../cpu/instructions";
 import { address, hexLiteral, register, upperOrLowerStr } from "../common";
 import { squareBracketExpr } from "../expressions";
 import { parserTypes } from "../parserTypes";
