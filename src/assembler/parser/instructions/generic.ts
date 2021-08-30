@@ -1,16 +1,16 @@
-import * as Arc from "../../../../node_modules/arcsecond/index";
+import Arc from "../../parser/arc/index";
+import { Parser as IParser } from "../../parser/arc/index";
 import { Instruction, InstructionMnemonic } from "../../../cpu/instructions";
 import { address, hexLiteral, register, upperOrLowerStr } from "../common";
 import { squareBracketExpr } from "../expressions";
 import { parserTypes } from "../parserTypes";
 import { ParserTypes } from "../util";
 
-type Parser = Arc.Parser<{
-        type: ParserTypes;
-        value: any;
-    }, string, any>;
+export interface IReturn  { type: ParserTypes; value: any; }
+type Parser = IParser<IReturn, string>;
+const contextual = (arg: () => Generator<any, IReturn, any>) => Arc.contextual<IReturn>(arg);
 
-const litReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const litReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
@@ -32,7 +32,7 @@ const litReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc
     });
 });
 
-const regLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const regLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
@@ -54,7 +54,7 @@ const regLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc
     });
 });
 
-const regReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const regReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
@@ -73,7 +73,7 @@ const regReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc
     });
 });
 
-const regMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const regMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
@@ -97,7 +97,7 @@ const regMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc
     });
 });
 
-const memReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const memReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
@@ -121,7 +121,7 @@ const memReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc
     });
 });
 
-const litMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const litMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
@@ -147,7 +147,7 @@ const litMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc
     });
 });
 
-const regIndReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const regIndReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
@@ -167,7 +167,7 @@ const regIndReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
     });
 });
 
-const litOffReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const litOffReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
@@ -196,7 +196,7 @@ const litOffReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
     });
 });
 
-const noArgs = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const noArgs = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.optionalWhitespace;
 
@@ -206,7 +206,7 @@ const noArgs = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc
     });
 });
 
-const singleReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const singleReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
@@ -219,7 +219,7 @@ const singleReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
     });
 });
 
-const singleLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => Arc.coroutine(function* () {
+const singleLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 

@@ -1,4 +1,4 @@
-import * as Arc from "../../../node_modules/arcsecond/index";
+import Arc from "../parser/arc/index";
 import { parserTypes } from "./parserTypes";
 import { mapJoin, ParserTypes } from "./util";
 
@@ -7,7 +7,7 @@ const upperOrLowerStr = (s: string) => Arc.choice([
     Arc.str(s.toLowerCase())
 ]);
 
-const peek = Arc.lookAhead(Arc.regex(/^./));
+const peek = Arc.lookAhead<string>(Arc.regex(/^./));
 
 const register = Arc.choice([
     upperOrLowerStr('r1'),
@@ -38,7 +38,7 @@ const validLabelIdentifier = mapJoin(Arc.sequenceOf([
     Arc.possibly(Arc.regex(/^[a-zA-Z0-9_]+/))
        .map(x => x === null ? '' : x)
 ]));
-const variable = Arc.char('!')
+const variable = Arc.str('!')
     .chain(() => validLabelIdentifier)
     .map(parserTypes.variable);
 

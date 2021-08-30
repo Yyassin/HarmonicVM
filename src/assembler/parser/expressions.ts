@@ -1,9 +1,11 @@
-import * as Arc from "../../../node_modules/arcsecond/index";
+import Arc, { Parser } from "../parser/arc/index";
 import { disambiguateOrderOfOperations, hexLiteral, operator, peek, variable } from "./common";
 import { parserTypes } from "./parserTypes";
 import { last, typifyBracketedExpression } from "./util";
 
-const bracketedExpr = Arc.coroutine(function* () {
+//TODO: solve the type error
+// @ts-ignore
+const bracketedExpr = Arc.contextual(function* () {
     enum states {
         OPEN_BRACKET=0,
         OPERATOR_OR_CLOSING_BRACKET=1,
@@ -18,7 +20,7 @@ const bracketedExpr = Arc.coroutine(function* () {
 
     let flag = true;
     while (flag) {
-        const nextChar = yield peek;
+        const nextChar: string = yield peek;
 
         switch(state) {
             case states.OPEN_BRACKET: {
@@ -44,7 +46,7 @@ const bracketedExpr = Arc.coroutine(function* () {
             
             case states.ELEMENT_OR_OPENING_BRACKET: {
                 if (nextChar === ')') {
-                    yield Arc.fail("Unexpected end of expression");
+                    yield Arc.fail<string>("Unexpected end of expression");
                     break;
                 }
 
@@ -83,7 +85,7 @@ const bracketedExpr = Arc.coroutine(function* () {
     return typifyBracketedExpression(expr);
 });
 
-const squareBracketExpr = Arc.coroutine(function* () {
+const squareBracketExpr = Arc.contextual(function* () {
     enum states {
         EXPECT_ELEMENT=0,
         EXPECT_OPERATOR=1
@@ -111,7 +113,7 @@ const squareBracketExpr = Arc.coroutine(function* () {
             }
 
             case states.EXPECT_OPERATOR: {
-                const nextChar = yield peek;
+                const nextChar: string = yield peek;
                 if (nextChar === ']') {
                     yield Arc.char(']');
                     yield Arc.optionalWhitespace;

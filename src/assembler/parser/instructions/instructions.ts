@@ -1,4 +1,4 @@
-import * as Arc from "../../../../node_modules/arcsecond/index";
+import Arc from "../arc/index";
 import { InstructionMnemonic, instructionType } from "../../../cpu/instructions";
 import {
     regReg,
