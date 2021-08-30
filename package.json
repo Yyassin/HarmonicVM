@@ -7,6 +7,7 @@
     "start": "ts-node index.ts",
     "start_assembler": "ts-node ./src/assembler/index.ts",
     "start_parser": "ts-node ./src/assembler/parser/arc/index.ts",
+    "start_banker": "ts-node ./src/cpu/memoryBank.ts",
     "test": "mocha -r ts-node/register ./src/test/**/*.test.ts"
   },
   "author": "",

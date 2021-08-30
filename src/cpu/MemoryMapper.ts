@@ -1,6 +1,6 @@
 import { IMemory, Memory } from "../types";
 
-type Device = Memory | IMemory;
+type Device = IMemory;
 
 interface Region {
     device: Device;

@@ -1,3 +1,4 @@
+import registers from "../../cpu/registers";
 import Arc from "../parser/arc/index";
 import { parserTypes } from "./parserTypes";
 import { mapJoin, ParserTypes } from "./util";
@@ -9,19 +10,8 @@ const upperOrLowerStr = (s: string) => Arc.choice([
 
 const peek = Arc.lookAhead<string>(Arc.regex(/^./));
 
-const register = Arc.choice([
-    upperOrLowerStr('r1'),
-    upperOrLowerStr('r2'),
-    upperOrLowerStr('r3'),
-    upperOrLowerStr('r4'),
-    upperOrLowerStr('r5'),
-    upperOrLowerStr('r6'),
-    upperOrLowerStr('r7'),
-    upperOrLowerStr('acc'),
-    upperOrLowerStr('sp'),
-    upperOrLowerStr('fp'),
-    upperOrLowerStr('pc')
-]).map(parserTypes.register);
+const register = Arc.choice(registers.map(registerLabel => upperOrLowerStr(registerLabel)))
+                    .map(parserTypes.register);
 
 const hexDigit = Arc.regex(/^[0-9A-Fa-f]/);
 

@@ -2,10 +2,11 @@ import { createMemory } from './createMemory';
 import type { IMemory, Memory } from '../types';
 import instructions from './instructions';
 import instructionsMeta from './instructions';
+import registers from './registers';
 
 class CPU {
     #memory: IMemory;                    // Main memory [8-bit words]
-    #registerLabels: Array<string>;     // Names for general purpose 16-bit registers (GPRs).
+    readonly #registerLabels: string[];     // Names for general purpose 16-bit registers (GPRs).
     #registers: Memory;                 // Memory for the GPRs.
     #registersMap: Object;              // Map: Register Label -> Memory Location 
     #stackFrameSize: number;            // Size of the current stack frame.
@@ -23,11 +24,7 @@ class CPU {
          *  'acc' -> arithmetic accumulator
          *  'rx' -> general register
          **/
-        this.#registerLabels = [
-            'r0', 'r1', 'r2', 'r3',
-            'r4', 'r5', 'r6', 'r7',
-            'acc', 'sp', 'fp', 'pc'
-        ];
+        this.#registerLabels = [...registers];
 
         // 16-bits or 2 bytes for each register
         this.#registers = createMemory(this.#registerLabels.length * 2);

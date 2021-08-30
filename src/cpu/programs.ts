@@ -1,20 +1,11 @@
 import instructions from './instructions';
+import registers from './registers';
 
 // General purpose register encodings (byte offset indices).
-export const reg = {
-    R0: 0,
-    R1: 1,
-    R2: 2,
-    R3: 3,
-    R4: 4,
-    R5: 5,
-    R6: 6,
-    R7: 7,
-    ACC: 8,
-    SP: 9,
-    FP: 10,
-    PC: 11
-}
+export const reg = registers.reduce((regMap: Record<string, number>, regName: string, idx: number) => {
+    regMap[regName] = idx;
+    return regMap;
+}, {} as Record<string, number>);
 
 let i = 0;  // Counter to make writing easier for now.
 
