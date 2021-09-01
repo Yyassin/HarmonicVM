@@ -1,5 +1,6 @@
 import registers from "../../cpu/registers";
-import Arc from "../parser/arc/index";
+import Arc, { Parser } from "../parser/arc/index";
+import { IReturn } from "./instructions/generic";
 import { parserTypes } from "./parserTypes";
 import { mapJoin, ParserTypes } from "./util";
 
@@ -38,13 +39,16 @@ const operator = Arc.choice([
     Arc.char('*').map(parserTypes.opMultiply)
 ]);
 
-const label = Arc.sequenceOf([
+const label: Parser<IReturn> = Arc.sequenceOf([
     validLabelIdentifier,
     Arc.char(':'),
     Arc.optionalWhitespace
 ])
 .map(([labelName]) => labelName)
 .map(parserTypes.label);
+
+const optionalWhitespaceSurrounded = Arc.between(Arc.optionalWhitespace, Arc.optionalWhitespace);
+const commaSeperated = Arc.sepBy(optionalWhitespaceSurrounded(Arc.char(',')));
 
 export interface Expression {
     type: ParserTypes,
@@ -112,5 +116,6 @@ export {
     variable,
     operator,
     label,
-    disambiguateOrderOfOperations
+    disambiguateOrderOfOperations,
+    commaSeperated
 };

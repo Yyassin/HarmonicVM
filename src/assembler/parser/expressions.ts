@@ -2,7 +2,13 @@ import Arc, { Parser } from "../parser/arc/index";
 import { disambiguateOrderOfOperations, hexLiteral, operator, peek, variable } from "./common";
 import { parserTypes } from "./parserTypes";
 import { last, typifyBracketedExpression } from "./util";
+import { interpretAs } from "./interpretAs";
 
+const expressionElement = Arc.choice([
+    hexLiteral,
+    variable,
+    interpretAs
+])
 //TODO: solve the type error
 // @ts-ignore
 const bracketedExpr = Arc.contextual(function* () {
@@ -54,10 +60,7 @@ const bracketedExpr = Arc.contextual(function* () {
                     state = states.OPEN_BRACKET;
                 } else {
                     // MOV LIT REG so no register
-                    last(stack).push(yield Arc.choice([
-                        hexLiteral,
-                        variable
-                    ]));
+                    last(stack).push(yield expressionElement);
                     yield Arc.optionalWhitespace;
                     state = states.OPERATOR_OR_CLOSING_BRACKET;
                 }
@@ -103,8 +106,7 @@ const squareBracketExpr = Arc.contextual(function* () {
             case states.EXPECT_ELEMENT: {
                 const result = yield Arc.choice([
                     bracketedExpr,
-                    hexLiteral,
-                    variable
+                    expressionElement
                 ]);
                 expr.push(result);
                 state = states.EXPECT_OPERATOR;

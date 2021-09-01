@@ -59,7 +59,9 @@ export enum InstructionMnemonic {
     POP="pop",
     CAL="cal",
     RET="ret",
-    HLT="hlt"
+    HLT="hlt",
+    INT="int",
+    RET_INT="rti"
 };
 
 export enum Instruction {
@@ -112,7 +114,9 @@ export enum Instruction {
     CAL_LIT=            "CAL_LIT",
     CAL_RS=             "CAL_RS",
     RET=                "RET",
-    HLT=                "HLT"
+    HLT=                "HLT",
+    INT=                "INT",
+    RET_INT=            "RET_INT"
 };
 
 export const instructionType = {
@@ -514,6 +518,18 @@ const instructionsMeta: InstructionMeta = {
         ...getMeta(InstructionTypes.noArgs),
         mnemonic: InstructionMnemonic.HLT
     },
+    [Instruction.INT]: {
+        instruction: Instruction.INT,
+        opCode: 0xFD,
+        ...getMeta(InstructionTypes.singleLit),
+        mnemonic: InstructionMnemonic.INT
+    },
+    [Instruction.RET_INT]: {
+        instruction: Instruction.RET_INT,
+        opCode: 0xFC,
+        ...getMeta(InstructionTypes.noArgs),
+        mnemonic: InstructionMnemonic.RET_INT
+    }
 }
 
 export default instructionsMeta;

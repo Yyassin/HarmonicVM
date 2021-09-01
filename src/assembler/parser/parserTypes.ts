@@ -15,5 +15,10 @@ export const parserTypes = {
     squareBracketedExpression:  asType(ParserTypes.SQUARE_BRACKETED_EXPRESSION),
 
     label:                      asType(ParserTypes.LABEL),                            
-    instruction:                asType(ParserTypes.INSTRUCTION)
+    instruction:                asType(ParserTypes.INSTRUCTION),
+
+    data:                       asType(ParserTypes.DATA),
+    constant:                   asType(ParserTypes.CONSTANT),
+    structure:                  asType(ParserTypes.STRUCTURE),
+    interpretAs:                asType(ParserTypes.INTERPRET_AS)
 };

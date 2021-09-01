@@ -10,11 +10,14 @@ class CPU {
     #registers: Memory;                 // Memory for the GPRs.
     #registersMap: Object;              // Map: Register Label -> Memory Location 
     #stackFrameSize: number;            // Size of the current stack frame.
+    #interruptVectorAddress: number;
+    #isInInterruptHandler: boolean;
+
     /**
      * Create a new CPU with the specified main memory.
      * @param memory Memory, this CPU's main memory module.
      */
-    constructor(memory: IMemory) {
+    constructor(memory: IMemory, interruptVectorAddress = 0x1000) {
         this.#memory = memory;
 
         /** Register labels
@@ -36,6 +39,12 @@ class CPU {
         }, {});
 
         this.#stackFrameSize = 0;
+
+        // Up to 16 interrupt handlers
+        this.#interruptVectorAddress = interruptVectorAddress;
+        this.#isInInterruptHandler = false;
+        // Enable all interrupts
+        this.setRegister('im', 0xffff);
 
         /* Set stack and frame pointer to end of mmem. */
 
@@ -184,6 +193,27 @@ class CPU {
 
         // Reset to the previous frame.
         this.setRegister('fp', framePointerAddress + stackFrameSize);
+    }
+
+    handleInterrupt(id: number) {
+        const interruptVectorIndex = id % 0xf;
+
+        // Check if interrupt is enabled.
+        const isUnmasked = Boolean((1 << interruptVectorIndex) & this.getRegister('im'));
+        if (!isUnmasked) { return; }
+
+        // Account for indexing by byte (counter is a nibble)
+        const handlerAddressPointer = this.#interruptVectorAddress + (interruptVectorIndex * 2);
+        const handlerAddress = this.#memory.getUint16(handlerAddressPointer);
+
+        // Don't push state if nested interrupts
+        if (!this.#isInInterruptHandler) {
+            this.push(0); // No arguments are passed to handlers
+            this.pushState();
+        }
+
+        this.#isInInterruptHandler = true;
+        this.setRegister('pc', handlerAddress);
     }
 
     /**
@@ -553,6 +583,16 @@ class CPU {
 
            case instructionsMeta.HLT.opCode: {
                return true;
+           }
+
+           case instructionsMeta.INT.opCode: {
+               const interruptID = this.fetch16();
+               return this.handleInterrupt(interruptID);
+           }
+
+           case instructionsMeta.RET_INT.opCode: {
+               this.#isInInterruptHandler = false;
+               this.popState();
            }
         }
     }

@@ -3,7 +3,7 @@ import registers from './registers';
 
 // General purpose register encodings (byte offset indices).
 export const reg = registers.reduce((regMap: Record<string, number>, regName: string, idx: number) => {
-    regMap[regName] = idx;
+    regMap[regName.toUpperCase()] = idx;
     return regMap;
 }, {} as Record<string, number>);
 
