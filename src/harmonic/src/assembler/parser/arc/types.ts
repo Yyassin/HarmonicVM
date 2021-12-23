@@ -1,3 +1,5 @@
+// @ts-nocheck - exporting types is a re-export
+
 type NonNull = {}
 interface ParserState<T, E = string> {
     targetString: string,

@@ -1,17 +1,17 @@
 const eraseScreen = () => {
-    process.stdout.write('\x1b[2J');
+    //process.stdout.write('\x1b[2J');
 }
   
 const moveTo = (x, y) => {
-    process.stdout.write(`\x1b[${y};${x}H`);
+    //process.stdout.write(`\x1b[${y};${x}H`);
 }
 
 const setBold = () => {
-    process.stdout.write('\x1b[1m');
+    //process.stdout.write('\x1b[1m');
 }
 
 const setRegular = () => {
-    process.stdout.write('\x1b[0m');
+    //process.stdout.write('\x1b[0m');
 }
 
 const createScreenDevice = () => {
@@ -25,8 +25,8 @@ const createScreenDevice = () => {
 
             const characterValue = data & 0x00ff;
       
-            process.stdin.resume();
-            process.stdin.setEncoding('utf8');
+            //process.stdin.resume();
+            //process.stdin.setEncoding('utf8');
 
             if (command === 0xff) {
               eraseScreen();
@@ -40,7 +40,7 @@ const createScreenDevice = () => {
             const y = Math.floor(address / 16) + 1;
             moveTo(x * 2, y);
             const character = String.fromCharCode(characterValue);
-            process.stdout.write(character);
+            //process.stdout.write(character);
           }
     }
 }

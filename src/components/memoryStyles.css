@@ -1,0 +1,23 @@
+.pointed-pc {
+   background-color: rgba(165, 245, 191, 0.342) !important;
+}
+.pointed-pc-line {
+    background-color: rgba(165, 245, 191, 0.342) !important;
+    width: 100% !important;
+    display: block;
+ }
+ 
+.pointed-sp {
+    background-color: rgba(216, 165, 245, 0.342) !important;
+ }
+
+ .token.constant {
+     width: 120px;
+     max-width: 120px;
+     min-width: 120px;
+     display: inline-block;
+ }
+
+ .memory-index-input {
+     margin-bottom: 23px;
+ }

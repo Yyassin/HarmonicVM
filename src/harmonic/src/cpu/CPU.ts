@@ -4,6 +4,8 @@ import instructions from './instructions';
 import instructionsMeta from './instructions';
 import registers from './registers';
 
+type RegisterBank = any;
+
 class CPU {
     #memory: IMemory;                    // Main memory [8-bit words]
     readonly #registerLabels: string[];     // Names for general purpose 16-bit registers (GPRs).
@@ -62,6 +64,16 @@ class CPU {
             console.log(`${label}: \t0x${this.getRegister(label).toString(16).padStart(4, '0')}`);
         });
         console.log('\n----------\n')
+    }
+
+    /**
+     * Prints the name and contents of each register.
+     */
+     getRegisterBank(): RegisterBank {
+        return this.#registerLabels.reduce((bank: RegisterBank, label: string, idx): void => {
+            bank[label] = `0x${this.getRegister(label).toString(16).padStart(4, '0')}`;
+            return bank;
+        }, {});
     }
 
     /**
@@ -225,9 +237,8 @@ class CPU {
             // Move 16b literal into destination register.
             case instructionsMeta.MOV_LIT_RD.opCode: {
                 // Get the index and account for byte offset: each Reg is 2 bytes.
-                const registerIdx = this.fetchRegIndex();
-                
                 const literal = this.fetch16();
+                const registerIdx = this.fetchRegIndex();
                 return this.#registers.setUint16(registerIdx, literal);
             }
 
@@ -258,8 +269,8 @@ class CPU {
             // Load contents of main memory[imm16] in destination register.
             case instructionsMeta.LDR_MEM_RD.opCode: {
                 // Get register index
-                const registerSrc = this.fetchRegIndex();
                 const memAddress = this.fetch16();
+                const registerSrc = this.fetchRegIndex();
                 const value = this.#memory.getUint16(memAddress);
                 return this.#registers.setUint16(registerSrc, value);
             }
