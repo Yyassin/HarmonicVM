@@ -1,46 +1,17 @@
 import { assemblyParser as parser } from "./parser/index";
 import instructionsMeta, { InstructionTypes as I } from "../cpu/instructions";
 import { reg } from "../cpu/programs";
-import { instruction } from "./parser/instructions/instructions";
 import { deepLog, ParserTypes } from "./parser/util";
-import { parserTypes } from "./parser/parserTypes";
 import { IReturn } from "./parser/instructions/generic";
-import { Parser } from "./parser/arc/index";
-import { current } from "../../../../node_modules/@reduxjs/toolkit/dist/index";
 
-const exampleProgram = [
-    "mov $1232, r0",
-    "mov $4200, r1",
-    "mov r1, &0060",
-    "mov $1300, r1",
-    "mov &0060, r2",
-    "add r1, r2"
-].join("\n");
-
-// const exampleProgram = `
-// constant code_constant = $C0DE
-
-// +data8 bytes = { $01, $02, $03, $04 }
-// data16 words = { $0506, $0708, $090A, $0B0C }
-
-// code:
-//     mov [!code_constant], &1234
-// `.trim();
-
-// const exampleProgram = `
-// data16 myRectangle = { $A3, $1B, $04, $10 }
-
-// structure Rectangle {
-//     x: $2,
-//     y: $2,
-//     w: $2,
-//     h: $2
-// }
-
-// start:
-//     mov &[ <Rectangle> myRectangle.y ], r1
-
-// `.trim();
+// const exampleProgram = [
+//     "mov $1232, r0",
+//     "mov $4200, r1",
+//     "mov r1, &0060",
+//     "mov $1300, r1",
+//     "mov &0060, r2",
+//     "add r1, r2"
+// ].join("\n");
 
 // Big Endian
 let machineCode = [] as number[];
@@ -139,7 +110,7 @@ export const assemble = (assemblyCode) => {
 
     /*** Compiler ***/
     let currentAddress = 0;
-    deepLog(parsedOutput)
+    // deepLog(parsedOutput)
     if ("result" in parsedOutput) { 
         // Parse labels on first run so they don't need to be defined sequentially.
         (parsedOutput.result as IReturn[]).forEach(node => {
@@ -275,11 +246,36 @@ export const assemble = (assemblyCode) => {
             }
         })
     }
-    console.log(parsedInstructions)
-    //console.log(machineCode)
-    //console.log(machineCode.map(value => `0x${value.toString(16).padStart(2, "0")}`).join(" "));
+    // console.log(parsedInstructions)
+    // console.log(machineCode)
+    // console.log(machineCode.map(value => `0x${value.toString(16).padStart(2, "0")}`).join(" "));
 
     return { assembled: machineCode, parsedInstructions };
 }
 
 //console.log(assemble(exampleProgram));
+
+// const exampleProgram = `
+// constant code_constant = $C0DE
+
+// +data8 bytes = { $01, $02, $03, $04 }
+// data16 words = { $0506, $0708, $090A, $0B0C }
+
+// code:
+//     mov [!code_constant], &1234
+// `.trim();
+
+// const exampleProgram = `
+// data16 myRectangle = { $A3, $1B, $04, $10 }
+
+// structure Rectangle {
+//     x: $2,
+//     y: $2,
+//     w: $2,
+//     h: $2
+// }
+
+// start:
+//     mov &[ <Rectangle> myRectangle.y ], r1
+
+// `.trim();

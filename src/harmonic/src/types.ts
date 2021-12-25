@@ -1,5 +1,6 @@
 export type Memory = DataView;
 
+// General Memory Interface
 export interface IMemory {
     getUint16: (byteOffset: number, littleEndian?: boolean) => number;
     getUint8: (byteOffset: number) => number;

@@ -126,4 +126,4 @@ export const tests = [
             }
         }
     },
-]
+];

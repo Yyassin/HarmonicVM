@@ -6,12 +6,15 @@ import registers from './registers';
 
 type RegisterBank = any;
 
+/**
+ * The Processor
+ */
 class CPU {
-    #memory: IMemory;                    // Main memory [8-bit words]
-    readonly #registerLabels: string[];     // Names for general purpose 16-bit registers (GPRs).
-    #registers: Memory;                 // Memory for the GPRs.
-    #registersMap: Object;              // Map: Register Label -> Memory Location 
-    #stackFrameSize: number;            // Size of the current stack frame.
+    #memory: IMemory;                           // Main memory [8-bit words]
+    readonly #registerLabels: string[];         // Names for general purpose 16-bit registers (GPRs).
+    #registers: Memory;                         // Memory for the GPRs.
+    #registersMap: Object;                      // Map: Register Label -> Memory Location 
+    #stackFrameSize: number;                    // Size of the current stack frame.
     #interruptVectorAddress: number;
     #isInInterruptHandler: boolean;
 
@@ -83,7 +86,7 @@ class CPU {
      * @param address number, the address to inspect.
      * @param n number, the number of bytes around address.
      */
-    viewMemoryAt(address: number, n: number): void {
+    viewMemoryAt(address: number, n: number, print: boolean = true): number {
         // Arraylike: [undefined x n].
         // Get and format next n words starting with memory[address].
         const nextNBytes = Array.from({length: n}, (_, i) =>
@@ -91,7 +94,8 @@ class CPU {
         ).map(byte => `0x${byte.toString(16).padStart(2, '0')}`);
 
         // Print the memory address followed by contents in 8 words.
-        console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextNBytes.join(' ')}`);
+        if (print) console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextNBytes.join(' ')}`);
+        return this.#memory.getUint16(address);
     }
 
    /**
@@ -185,6 +189,10 @@ class CPU {
         this.#stackFrameSize = 0;
     }
 
+    /**
+     * Pops the previous state off the 
+     * stack corresponding to the frame pointer.
+     */
     popState(): void {
         const framePointerAddress = this.getRegister('fp');
         // Right above stack frame size.
@@ -207,6 +215,11 @@ class CPU {
         this.setRegister('fp', framePointerAddress + stackFrameSize);
     }
 
+    /**
+     * Executes the interrupts service routine
+     * corresponding to the specified id.
+     * @param id, id of the IRQ handler.
+     */
     handleInterrupt(id: number) {
         const interruptVectorIndex = id % 0xf;
 
@@ -290,7 +303,7 @@ class CPU {
                 const r1 = this.fetchRegIndex();
                 const r2 = this.fetchRegIndex();
                 const offset = this.#registers.getUint16(r1);
-                const value = this.#memory.getUint16(baseAddress * offset);
+                const value = this.#memory.getUint16(baseAddress + offset);
                 return this.#registers.setUint16(r2, value);
             }
 
@@ -311,7 +324,7 @@ class CPU {
                 return this.setRegister('acc', registerValue + literal);
             }
 
-            //* unsigned
+            //* unsigned register - literal
             case instructionsMeta.SUB_LIT_REG.opCode: {
                 const literal = this.fetch16();
                 const r1 = this.fetchRegIndex();
@@ -319,6 +332,7 @@ class CPU {
                 return this.setRegister('acc', registerValue - literal);
             }
 
+            //* unsigned literal - register
             case instructionsMeta.SUB_REG_LIT.opCode: {
                 const r1 = this.fetchRegIndex();
                 const lit = this.fetch16();
@@ -579,7 +593,7 @@ class CPU {
             }
 
              // Branch to subroutine at address in register
-             case instructionsMeta.CAL_LIT.opCode: {
+             case instructionsMeta.CAL_RS.opCode: {
                 const registerIdx = this.fetchRegIndex();
                 const branchAddress = this.#registers.getUint16(registerIdx);
                 this.pushState();

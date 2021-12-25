@@ -1,3 +1,10 @@
+/**
+ * EXPERIMENTAL - NOT IN USE
+ * 
+ * This module supports rendering characters to the 
+ * command line but isn't supported by the current client.
+ */
+
 const eraseScreen = () => {
     //process.stdout.write('\x1b[2J');
 }

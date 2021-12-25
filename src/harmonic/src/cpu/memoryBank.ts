@@ -1,3 +1,10 @@
+/**
+ * EXPERIMENTAL - Not in use
+ * 
+ * A memory banking system to 
+ * support interfacing with multiple memory units.
+ */
+
 import { IMemory } from "../types";
 import CPU from "./CPU";
 import { createMemory } from "./createMemory";
@@ -10,7 +17,7 @@ const memoryFunctions: readonly (keyof IMemory)[] = [
 type BankForwardInterface = (name: keyof IMemory) => (...args: any) => number | void;
 type BankInterface = Record<keyof IMemory, ReturnType<BankForwardInterface>>;
 /**
- * 
+ * Creates n memory banks corresponding to the specified cpu.
  * @param n number, the number of banks that are accessible.
  * @param bankSize number, the number of bytes per bank.
  * @param CPU CPU, reference to the cpu to bank memory for.
@@ -27,6 +34,7 @@ const createBankedMemory = (n: number, bankSize: number, cpu: CPU) => {
         return indexedBank[name](...args);
     }
 
+    // Map memory interface to be compatible with the bank model
     const bankInterface: BankInterface = memoryFunctions.reduce((publicInterface: BankInterface, functionName: keyof IMemory) => {
         publicInterface[functionName] = forwardToBank(functionName);
         return publicInterface;

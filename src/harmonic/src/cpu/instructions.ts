@@ -1,3 +1,8 @@
+/**
+ * Instruction Types and Formats
+ */
+
+// A list of all the register formats (should've named it formats :/)
 export enum InstructionTypes {
     litReg="litReg",
     regLit="regLit",
@@ -13,6 +18,8 @@ export enum InstructionTypes {
     singleLit="singleLit"
 };
 
+// Corresponds to the formats above, the size of 
+// each instruction in bytes (for parsing)
 type InstructionSize = {[key in InstructionTypes]: number };
 const instructionSize: InstructionSize = {
     [InstructionTypes.litReg]: 4,
@@ -29,6 +36,7 @@ const instructionSize: InstructionSize = {
     [InstructionTypes.singleLit]: 3,
 }
 
+// Symbols corresponding to each type of instruction
 export enum InstructionMnemonic {
     MOV="mov",
     // LDR="ldr",
@@ -64,6 +72,7 @@ export enum InstructionMnemonic {
     RET_INT="rti"
 };
 
+// All the supported instructions
 export enum Instruction {
     MOV_LIT_RD=         "MOV_LIT_RD",
     MOV_RS_RD=          "MOV_RS_RD",
@@ -119,6 +128,7 @@ export enum Instruction {
     RET_INT=            "RET_INT"
 };
 
+// Formatted for convenience in parsing
 export const instructionType = {
     [InstructionMnemonic.MOV]: {
         regReg:     Instruction.MOV_RS_RD,
@@ -144,15 +154,15 @@ export const instructionType = {
     },
     [InstructionMnemonic.AND]: {
         regReg:  Instruction.AND_REG_REG,
-        litReg:  Instruction.AND_REG_LIT
+        regLit:  Instruction.AND_REG_LIT
     },
     [InstructionMnemonic.OR]: {
         regReg:  Instruction.OR_REG_REG,
-        litReg:  Instruction.OR_REG_LIT
+        regLit:  Instruction.OR_REG_LIT
     },
     [InstructionMnemonic.XOR]: {
         regReg:  Instruction.XOR_REG_REG,
-        litReg:  Instruction.XOR_REG_LIT
+        regLit:  Instruction.XOR_REG_LIT
     },
     [InstructionMnemonic.LSL]: {
         regReg: Instruction.LSL_REG_REG,
@@ -187,14 +197,6 @@ export const instructionType = {
         regMem: Instruction.JGT_REG,
         litMem: Instruction.JGT_LIT
     },
-    [InstructionMnemonic.JLT]: {
-        regMem: Instruction.JLT_REG,
-        litMem: Instruction.JLT_LIT
-    },
-    [InstructionMnemonic.JGT]: {
-        regMem: Instruction.JGT_REG,
-        litMem: Instruction.JGT_LIT
-    },
     [InstructionMnemonic.JLE]: {
         regMem: Instruction.JLE_REG,
         litMem: Instruction.JLE_LIT
@@ -208,7 +210,7 @@ export const instructionType = {
         singleLit: Instruction.PSH_LIT
     },
     [InstructionMnemonic.POP]: {
-        singleReg: Instruction.PSH_RS
+        singleReg: Instruction.POP
     },
     [InstructionMnemonic.CAL]: {
         singleReg: Instruction.CAL_RS,
@@ -237,6 +239,7 @@ const getMeta = (instructionType: InstructionTypes) => ({
     size: instructionSize[instructionType]
 });
 
+// Meta info corresponding to each instruction type (for parsing)
 const instructionsMeta: InstructionMeta = {
     [Instruction.MOV_LIT_RD]: {
         instruction: Instruction.MOV_LIT_RD,
@@ -280,7 +283,7 @@ const instructionsMeta: InstructionMeta = {
         ...getMeta(InstructionTypes.litOffReg),
         mnemonic: InstructionMnemonic.MOV
     },
-
+    
     [Instruction.ADD_RX_RY]: {
         instruction: Instruction.ADD_RX_RY,
         opCode: 0x14,
@@ -491,7 +494,7 @@ const instructionsMeta: InstructionMeta = {
     [Instruction.POP]: {
         instruction: Instruction.POP,
         opCode: 0x1A,
-        ...getMeta(InstructionTypes.singleLit),
+        ...getMeta(InstructionTypes.singleReg),
         mnemonic: InstructionMnemonic.POP
     },
     [Instruction.CAL_LIT]: {

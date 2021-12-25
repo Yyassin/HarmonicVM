@@ -68,17 +68,17 @@ const mul = Arc.choice([
 
 const and = Arc.choice([
     regReg(AND, instructionType[AND].regReg),
-    litReg(AND, instructionType[AND].litReg)
+    regLit(AND, instructionType[AND].regLit)
 ]);
 
 const or = Arc.choice([
     regReg(OR, instructionType[OR].regReg),
-    litReg(OR, instructionType[OR].litReg)
+    regLit(OR, instructionType[OR].regLit)
 ]);
 
 const xor = Arc.choice([
     regReg(XOR, instructionType[XOR].regReg),
-    litReg(XOR, instructionType[XOR].litReg)
+    regLit(XOR, instructionType[XOR].regLit)
 ]);
 
 const lsl = Arc.choice([

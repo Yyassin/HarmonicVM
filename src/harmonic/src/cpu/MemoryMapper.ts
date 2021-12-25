@@ -1,7 +1,13 @@
-import { IMemory, Memory } from "../types";
+/**
+ * EXPERIMENTAL - Not in use
+ * 
+ * This module effectively mimics a memory management unit (MMU)
+ * to support dynamic binding of memory using a relocation register.
+ */
+
+import { IMemory } from "../types";
 
 type Device = IMemory;
-
 interface Region {
     device: Device;
     start: number;
@@ -16,6 +22,7 @@ class MemoryMapper {
         this.#regions = [] as Region[];
     }
 
+    // Define a device's logical to physical memory map
     map(device: Device, start: number, end: number, remap: boolean = true) {
         const region: Region = {
             device, 
@@ -47,6 +54,7 @@ class MemoryMapper {
         return region;
     }
 
+    // @Override
     getUint16(address: number) {
         const region = this.findRegion(address);
 
@@ -59,6 +67,7 @@ class MemoryMapper {
         return region.device.getUint16(finalAddress);
     }
 
+    // @Override
     getUint8(address: number) {
         const region = this.findRegion(address);
 
@@ -71,6 +80,7 @@ class MemoryMapper {
         return region.device.getUint8(finalAddress);
     }
 
+    // @Override
     setUint16(address: number, value: number) {
         const region = this.findRegion(address);
 
@@ -83,6 +93,7 @@ class MemoryMapper {
         return region.device.setUint16(finalAddress, value);
     }
 
+    // @Override
     setUint8(address: number, value: number) {
         const region = this.findRegion(address);
 

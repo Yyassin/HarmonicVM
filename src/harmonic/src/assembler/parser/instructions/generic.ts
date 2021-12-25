@@ -36,13 +36,13 @@ const regLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
 
-    const arg2 = yield register;
+    const arg1 = yield register;
 
     yield Arc.optionalWhitespace;
     yield Arc.char(',');
     yield Arc.optionalWhitespace;
 
-    const arg1 = yield Arc.choice([
+    const arg2 = yield Arc.choice([
         hexLiteral,
         squareBracketExpr
     ]);
@@ -227,6 +227,7 @@ const singleLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
         hexLiteral,
         squareBracketExpr
     ]);
+    yield Arc.optionalWhitespace;
 
     return parserTypes.instruction({
         instruction: type,

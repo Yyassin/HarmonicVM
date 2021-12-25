@@ -1,3 +1,7 @@
+/**
+ * Test programs for debugging.
+ */
+
 import instructions from './instructions';
 import registers from './registers';
 
