@@ -8,16 +8,19 @@ import NavBar from './components/nav/Header';
 
 const App = () => {
   const dispatch = useAppDispatch();
-  const editorRef = useRef<any>();
   const [running, setRunning] = useState(false);
-
+  const editorRef = useRef<any>();
   const runIntervalId = useRef<any>(null);
+
+  /**
+   * Sets up interval to step through
+   * each loaded instruction
+   */
   const handleRun = () => {
     const wasRunning = running;
 
     setRunning(!running);
 
-    console.log(wasRunning)
     if (wasRunning) {
       clearInterval(runIntervalId.current);
       runIntervalId.current = null;

@@ -6,7 +6,7 @@ import { deepLog, ParserTypes } from "../assembler/parser/util";
 describe("parser", () => {
     it("str", () => {
         const parser = Arc.str("hello");
-        const resultOk = parser.run("hello there!");
+        const resultOk = parser.run("hello there!", false);
         const expectedOk = {
             targetString: "hello there!",
             index: "hello".length,
@@ -16,7 +16,7 @@ describe("parser", () => {
         }
         expect(resultOk).eql(expectedOk);
 
-        const resultError = parser.run("hey there!");
+        const resultError = parser.run("hey there!", false);
         const expectedError = {
             targetString: "hey there!",
             index: 0,
@@ -29,7 +29,7 @@ describe("parser", () => {
 
     it("whitespace", () => {
         const parser = Arc.whitespace;
-        const result = parser.run("         hi");
+        const result = parser.run("         hi", false);
         expect(result).eql({
             targetString: "         hi",
             index: "         ".length,

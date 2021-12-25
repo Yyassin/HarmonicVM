@@ -25,6 +25,7 @@ const litReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
 
     const arg2 = yield register;
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,
@@ -47,6 +48,7 @@ const regLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
         squareBracketExpr
     ]);
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,
@@ -66,6 +68,7 @@ const regReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
 
     const r2 = yield register;
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,
@@ -90,6 +93,7 @@ const regMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     ]);
 
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,
@@ -114,6 +118,7 @@ const memReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     const r1 = yield register;
 
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,
@@ -133,6 +138,7 @@ const litMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     yield Arc.optionalWhitespace;
     yield Arc.char(',');
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     const addr = yield Arc.choice([
         address,
@@ -160,6 +166,7 @@ const regIndReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
     const r2 = yield register;
 
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,
@@ -189,6 +196,7 @@ const litOffReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
     const r2 = yield register;
 
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,
@@ -199,6 +207,7 @@ const litOffReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
 const noArgs = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,
@@ -212,6 +221,7 @@ const singleReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
 
     const r1 = yield register;
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,
@@ -228,6 +238,7 @@ const singleLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
         squareBracketExpr
     ]);
     yield Arc.optionalWhitespace;
+    yield Arc.optionalComment;
 
     return parserTypes.instruction({
         instruction: type,

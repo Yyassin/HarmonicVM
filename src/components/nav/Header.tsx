@@ -67,7 +67,6 @@ const MenuAButton = ({ children, to = "/", ...rest }) => {
 
 const MenuLinks = ({ isOpen, handleAssemble, handleLoadBinary, handleStep, handleRun, running }) => {
   const { colorMode, toggleColorMode } = useColorMode();
-  console.log(running)
   return (
     <Box
       display={{ base: isOpen ? "block" : "none", md: "block" }}

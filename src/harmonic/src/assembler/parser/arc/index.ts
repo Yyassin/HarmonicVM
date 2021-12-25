@@ -1,4 +1,4 @@
-import { deepLog } from "../util";
+import { deepLog, mapJoin } from "../util";
 import { 
     Err,
     Mutator, 
@@ -66,7 +66,7 @@ class Parser<T, E = string> {
      * @param targetString string, the string to parse.
      * @returns ParserState, the state following the parsing of the supplied string.
      */
-    run(targetString: string): ParserState<T, E> {
+    run(targetString: string, strict: boolean = true): ParserState<T, E> {
         const initialState = {
             targetString,
             index: 0,
@@ -74,8 +74,13 @@ class Parser<T, E = string> {
             isError: false,
             error: null
         }
-    
-        return this.#parserStateTransformer(initialState);
+        
+        const finalParsed = this.#parserStateTransformer(initialState);
+        if (strict && finalParsed.index != finalParsed.targetString.length) {
+                throw new Error(`Parse error at index ${finalParsed.index}: ` +
+                    `${finalParsed.targetString.slice(finalParsed.index, Math.min(finalParsed.index + 15, finalParsed.targetString.length))} ...`);
+        }
+        return finalParsed;
     }
 
     //TODO: Solve mapping types
@@ -255,7 +260,7 @@ const many = <T>(parser: Parser<T>, assertResult?: boolean) => new Parser((parse
     }
 
     return updateParserState(nextState, results);
-})
+});
 
 /**
  * Defines a new parser from a seperator parser and a value parser. The value parser will be used to 
@@ -405,6 +410,8 @@ const RE_LETTER = /[a-zA-Z]/;        // Regex to match single letter.
 const RE_DIGITS = /^[0-9]*/;         // Regex to match digits.
 const RE_DIGIT = /[0-9]*/;           // Regex to match digits.
 const RE_WHITESPACES = /^\s+/;       // Regex to match whitepsace.
+const RE_ALL = /.+?(?=\n)/;          // Regex to match anything.
+const RE_NEW_LINE = /\r?\n/;
 
 /**
  * A letter or digit lexer wrapper, with type being specified.
@@ -442,7 +449,15 @@ const letter = regex(RE_LETTER);
 const digits = regex(RE_DIGITS);
 const digit = regex(RE_DIGIT);
 const whitespace = regex(RE_WHITESPACES);
+const comment = char(';')
+    .chain(() => mapJoin(sequenceOf([
+        optionalWhitespace,
+        regex(RE_ALL),
+        possibly(regex(RE_NEW_LINE)),
+        optionalWhitespace
+    ])));
 const optionalWhitespace = possibly(whitespace).map(result => result || '');
+const optionalComment = possibly(comment).map(result => result || 'comment');
 
 export type { Parser };
 export default {
@@ -466,7 +481,9 @@ export default {
     digits,
     digit,
     whitespace,
+    comment,
     optionalWhitespace,
+    optionalComment,
 
     lazy,
     fail,

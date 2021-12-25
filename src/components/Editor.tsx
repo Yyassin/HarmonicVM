@@ -22,11 +22,18 @@ const Editor = (props, ref) => {
     const languageID = useHarmonic();
 
     const saveAssembly = () => assemblyCode.current = editorRef.current.getValue();
-    
+    const format = (text: string): string => text.replace(/(?:\r\n|\r|\n)/g, '\n'); // Need to replace \r\n with \n since regex is hard
+
     const generateMachineCode = () => {
         saveAssembly();
 
-        const { assembled, parsedInstructions } = assemble(assemblyCode.current.trim());
+        let assembled: number[], parsedInstructions: any[];
+        try {
+            ({ assembled, parsedInstructions } = assemble(format(assemblyCode.current.trim() + "\n")));
+        } catch (e) {
+            console.log("Error: ", e.message);
+            return;
+        }
 
         machineCode.current = assembled.reduce((code, byte, idx) => {
             code += `0x${byte.toString(16).padStart(2, "0")}` + " ";

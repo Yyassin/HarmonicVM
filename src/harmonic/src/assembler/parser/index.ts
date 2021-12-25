@@ -13,9 +13,17 @@ export const assemblyParser = Arc.many(
         data8, 
         data16, 
         constant,
-        structure
+        structure,
+        Arc.comment as any
     ])
 );
 
-//deepLog(assemblyParser.run("jeq $0, &[!start]"));
+const statement = `
+;hello
+mov r1, r2 ; hey
+add $C0DE, r2   ; ilu 
+mov r2, r1 ; ilu2
+`.trim() + '\n';
+assemblyParser.run(statement);
+
 

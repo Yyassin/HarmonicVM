@@ -5,6 +5,7 @@ import { useAppSelector } from "../store";
 import { metaSelector, pcSelector } from "../reducers/memoryReducer";
 import "./memoryStyles.css";
 import { Scrollbars } from 'react-custom-scrollbars';
+import { instruction } from "../harmonic/src/assembler/parser/instructions/instructions";
 
 
 const ProgramMeta = () => {
@@ -26,7 +27,8 @@ const ProgramMeta = () => {
         }
     })
 
-    if (!instructions) { return null; }
+    console.log(instructions)
+    if (!instructions || !instructions.length) { return null; }
 
     const exampleCode = instructions.map(instruction => (
         `${instruction.instruction} \t` + instruction.args.reduce((argString, arg, idx) => {

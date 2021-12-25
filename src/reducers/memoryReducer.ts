@@ -4,6 +4,7 @@ import { init, VM } from "../harmonic";
 import { Memory } from "../harmonic/src/types";
 import CPU from "../harmonic/src/cpu/CPU";
 
+// Initializes the machine
 let vm: VM;
 export const initVM = (program: Uint8Array) => {
     vm = init(program);
@@ -27,6 +28,7 @@ export const memoryReducer = createSlice({
     name: 'memory',
     initialState,
     reducers: {
+        // Initialization
         initMachine: (state, action: PayloadAction<number[]>) => {
             const program = action.payload;
             initVM(new Uint8Array(program));
@@ -36,15 +38,17 @@ export const memoryReducer = createSlice({
                 ...vm
             }
         },
+        // Execute and step through instruction
         step: (state) => {
             vm.cpu.cycle();
 
-            console.log(vm.cpu.getRegister('pc'));
+            // console.log(vm.cpu.getRegister('pc'));
             return {
                 ...state,
                 ...vm
             }
         },
+        // Sets up metadata corresponding to parsed assembly
         setMeta: (state, action: PayloadAction<any>) => {
             const meta = action.payload;
             return {
@@ -57,13 +61,10 @@ export const memoryReducer = createSlice({
 
 export const { step, initMachine, setMeta } = memoryReducer.actions;
 
-// Selectors
+/** Selectors **/
 export const registersSelector = createSelector(
     (state: RootState) => state.memory.cpu.getRegisterBank(),
     (registers: any) => {
-        console.log("called registers");
-        console.log(registers);
-
         return registers;
     }
 );
@@ -71,9 +72,6 @@ export const registersSelector = createSelector(
 export const pcSelector = createSelector(
     (state: RootState) => state.memory.cpu.getRegister('pc'),
     (pc: number) => {
-        console.log("called pc");
-        console.log(pc);
-
         return pc;
     }
 );
@@ -81,9 +79,6 @@ export const pcSelector = createSelector(
 export const spSelector = createSelector(
     (state: RootState) => state.memory.cpu.getRegister('sp'),
     (sp: number) => {
-        console.log("called sp");
-        console.log(sp);
-
         return sp;
     }
 );
@@ -91,7 +86,6 @@ export const spSelector = createSelector(
 export const metaSelector = createSelector(
     (state: RootState) => state.memory.meta,
     (meta: any) => {  
-        console.log("selector: ", meta)
         return meta;
     }
 );
@@ -99,9 +93,6 @@ export const metaSelector = createSelector(
 export const memorySelector = createSelector(
     (state: RootState) => state.memory.memory,
     (memory: Memory) => {  
-        console.log("memory:")
-        console.log(memory)
-
         return memory;
     }
 );

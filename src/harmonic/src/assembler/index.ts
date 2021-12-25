@@ -16,8 +16,8 @@ import { IReturn } from "./parser/instructions/generic";
 // Big Endian
 let machineCode = [] as number[];
 let parsedInstructions = [] as any[];
-const labels = {};
-const structures = {};
+let labels = {};
+let structures = {};
 
 //TODO: Add binary expression support
 const getNodeValue = node => {
@@ -101,19 +101,23 @@ const nameCollision = (name) => name in labels || name in structures;
 
 export const assemble = (assemblyCode) => {
     machineCode = [] as number[];
-    parsedInstructions = [] as any[];
+    parsedInstructions = [];
+    labels = {};
+    structures = {};
     
     const parsedOutput = parser.run(assemblyCode);
+    const ast = parsedOutput.result.filter(node => typeof node !== "string")
+    
     if (parsedOutput.isError) {
         throw new Error(parsedOutput.error);
     }
 
     /*** Compiler ***/
     let currentAddress = 0;
-    // deepLog(parsedOutput)
+    //deepLog(parsedOutput)
     if ("result" in parsedOutput) { 
         // Parse labels on first run so they don't need to be defined sequentially.
-        (parsedOutput.result as IReturn[]).forEach(node => {
+        ast.forEach(node => {
             switch(node.type) {
                 case ParserTypes.LABEL: {
                     if (nameCollision(node.value)) {
@@ -185,7 +189,7 @@ export const assemble = (assemblyCode) => {
 
         const isAccountedFor = (node) => ((node.type === ParserTypes.LABEL) || (node.type === ParserTypes.CONSTANT) || (node.type === ParserTypes.STRUCTURE));
         let pointerIndex = 0;
-        (parsedOutput.result as IReturn[]).forEach(node => {
+        ast.forEach(node => {
             // Update labels
             if (isAccountedFor(node)) { return; }
             else if (node.type === ParserTypes.DATA) {
