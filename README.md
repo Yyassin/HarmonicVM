@@ -25,13 +25,13 @@ A RISC Architecture
 
 <span title="harmonic demo gif">
  <p align="left">
-  <img src="./public/assets/hex.png" alt="demo-img">
+  <img src="./public/assets/hex.PNG" alt="demo-img">
  </p>
 </span>
 
 <span title="harmonic demo gif">
  <p align="left">
-  <img src="./public/assets/hex2.png" alt="demo-img">
+  <img src="./public/assets/hex2.PNG" alt="demo-img2">
  </p>
 </span>
 
