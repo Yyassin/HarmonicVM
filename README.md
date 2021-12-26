@@ -1,15 +1,17 @@
 # HarmonicVM
 > **HarmonicVM** is a simple implementation of a virtual computer --- a processing unit that interfaces main memory to execute a set of assembly instructions.
 
+## Usage
 ## Instruction Set Architecture
 A RISC Architecture
 *Disclaimer*: There is no logical background for choosing the opcodes (slight regret xD).
 
+### General Syntax
 ### Arithmetic
 | Instruction  | Type           | Syntax        | Function              | Opcode   |
 | :---         | :---           | :---          | :---                  |:---      |
-| ADD          | reg_reg        | `add r7, r4`  | acc <- [r7] + [r4]    | 0x14     |
-| ADD          | lit_reg        | `add $D4, r4` | acc <- 0xD4 + [r4]    | 0x3F     | 
+| ADD          | reg_reg        | `add r7, r4`  | acc ← [r7] + [r4]     | 0x14     |
+| ADD          | lit_reg        | `add $D4, r4` | acc ← 0xD4 + [r4]     | 0x3F     | 
 
 - Interrupts (in language, functionality is there)
 - Comments
@@ -35,7 +37,7 @@ A RISC Architecture
  </p>
 </span>
 
-```
+```assembly
     ; Declare constants
     constant term = $a      ; The number of fibonacci terms 
                             ; to calculate (10)

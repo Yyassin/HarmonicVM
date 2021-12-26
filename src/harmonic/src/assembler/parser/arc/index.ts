@@ -1,4 +1,4 @@
-import { deepLog, mapJoin } from "../util";
+import { mapJoin } from "../util";
 import { 
     Err,
     Mutator, 
@@ -149,6 +149,11 @@ const str = (s: string) => new Parser((parserState: ParserState<string>) => {
     return updateParserError(parserState, `str: Tried to match ${s} but got ${targetString.slice(index, index + 10)}...`);
 });
 
+/**
+ * A character lexer. Tokenizes the specified character.
+ * @param c string, the character to tokenize.
+ * @returns ParserState, the updated state.
+ */
 const char = (c: string): Parser<string> => {
     if (!c || c.length !== 1) {
       throw new TypeError(
@@ -357,36 +362,52 @@ const success = <T>(value: any): Parser<T> => new Parser(parserState => {
     return updateParserState(parserState, value);
 })
 
+/**
+ * Contextual parser that exploits couroutines to feed the current parse
+ * result into the parser to use in the next parsing step.
+ * @param generatorFn Generator, the parsing coroutine.
+ * @returns Parser, the contextual parser.
+ */
 const contextual = <T>(generatorFn: () => Generator<Parser<T>, any, any>): Parser<T> => new Parser(parserState => {
     const generator = generatorFn();
 
     let nextValue = undefined;
     let nextState = parserState;
 
+    // Executes a parse step until completion
     while (true) {
         const result = generator.next(nextValue);
         const value = result.value;
         const done = result.done;
 
+        // If done state, return final result
         if (done) {
-        return updateParserState(nextState, value);
+            return updateParserState(nextState, value);
         }
 
+        // Not done and no value, error
         if (!(value && value instanceof Parser)) {
         throw new Error(
             `[coroutine] yielded values must be Parsers, got ${result.value}.`,
         );
         }
 
+        // Otherwise, parse the next state and store the value if no errors
         nextState = value.parse(nextState);
         if (nextState.isError) {
-        return nextState;
+            return nextState;
         }
 
         nextValue = nextState.result;
     }
 });
 
+/**
+ * Attempts to match the specified parser but doesn't
+ * fail if no match is found.
+ * @param parser Parser, the parser to parse against.
+ * @returns Parser, the possibly parser.
+ */
 const possibly = <T>(parser: Parser<T>): Parser<T> => new Parser(parserState => {
     if (parserState.isError) { return parserState; }
 
@@ -394,6 +415,12 @@ const possibly = <T>(parser: Parser<T>): Parser<T> => new Parser(parserState => 
     return nextState.isError ? (updateParserState(parserState, null)) : nextState;
 })
 
+/**
+ * Matches the specified parser to the current state without consuming 
+ * the input.
+ * @param parser Parser, the parser to parse against.
+ * @returns Parser, the lookAhead parser.
+ */
 const lookAhead = <T>(parser: Parser<T>): Parser<T> => new Parser(parserState => {
     if (parserState.isError) { return parserState; }
 
@@ -449,7 +476,7 @@ const letter = regex(RE_LETTER);
 const digits = regex(RE_DIGITS);
 const digit = regex(RE_DIGIT);
 const whitespace = regex(RE_WHITESPACES);
-const comment = char(';')
+const comment = char(';')                       // Anything following ; until next line
     .chain(() => mapJoin(sequenceOf([
         optionalWhitespace,
         regex(RE_ALL),

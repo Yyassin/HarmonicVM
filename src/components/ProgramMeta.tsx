@@ -6,13 +6,20 @@ import { metaSelector, pcSelector } from "../reducers/memoryReducer";
 import "./memoryStyles.css";
 import { Scrollbars } from 'react-custom-scrollbars';
 import { Select } from "@chakra-ui/react";
-import { instruction } from "../harmonic/src/assembler/parser/instructions/instructions";
 
+/**
+ * ProgramMeta component that highlights the parsed and stored
+ * instructions (i.e the abstract syntax tree) using Prisma.
+ * @returns JSX.Element, the ProgramMeta component.
+ */
 const ProgramMeta = () => {
-    const [base, setBase] = useState<string | null>("0");
-    const instructions = useAppSelector(metaSelector);
-    const pc = useAppSelector(pcSelector);
+    const [base, setBase] = useState<string | null>("0");   // The base address to display meta for (incase of subroutines)
+    const instructions = useAppSelector(metaSelector);      // The abstract syntax tree in state (as sequential array of instructions )
+    const pc = useAppSelector(pcSelector);                  // Current pc value -> highlight pointed instruction
 
+    /**
+     * Highlight the current instruction that pc is pointing at
+     */
     useEffect(() => {
         const pcLine = document.getElementsByClassName(`line-0x${pc.toString(16).padStart(4, "0")}`);
 
@@ -22,23 +29,31 @@ const ProgramMeta = () => {
             pcElem.classList.add('pointed-pc-line');
         }
 
-        
         return () => {
             pcElem?.classList.remove('pointed-pc-line');
         }
     })
 
-    if (!instructions[base]) { setBase(Object.keys(instructions)[0]); return null; }
-    if (!instructions || !instructions[base].length) { return null; }
+    /** Create the instruction list */
 
+    // Assert we have parsed instructions to display.
+    if (!instructions) { return null; }
+    // If instruction at base doesn't exist, default to first address.
+    if (!instructions[base]) { setBase(Object.keys(instructions)[0]); return null; }
+    // Assert that instructions at base exist.
+    if (!instructions[base].length) { return null; }
+
+    // Format the instructions as a string to be displayed 
     const exampleCode = instructions[base].map(instruction => (
-        `${instruction.instruction} \t` + instruction.args.reduce((argString, arg, idx) => {
-            const punctuation = (idx === instruction.args.length - 1) ? "" : ","
+        `${instruction.instruction} \t` + instruction.args.reduce((argString, arg, idx) => {    // Add a tab following mnemonic
+            const punctuation = (idx === instruction.args.length - 1) ? "" : ","                // Comma after first arg
             argString += `${arg}${punctuation} `;
             return argString;
         }, "")
-    )).join("\n");
+    )).join("\n");  
 
+
+    // Render thumb for scrollbar 
     const renderThumb = ({ style, ...props }) => {
       const thumbStyle = {
           backgroundColor: 'rgba(255, 255, 255, 0.1)'
@@ -48,7 +63,8 @@ const ProgramMeta = () => {
               style={{ ...style, ...thumbStyle, borderRadius: '10px' }}
               {...props}/>
       );
-  }
+    };
+
     return (
         <div style={{height: "100%", width: "100%", position: "relative"}}>
           <Select
@@ -67,6 +83,7 @@ const ProgramMeta = () => {
             onChange={e => setBase(e.target.value)}
           >
               {
+                // Line numbers as hexadecimal address
                 Object.keys(instructions).map((instructionBase, idx) => 
                   <option key={idx} value={instructionBase}>{`0x${parseInt(instructionBase, 16).toString(16).padStart(4, "0")}`}</option>
                 )
@@ -97,7 +114,7 @@ const ProgramMeta = () => {
                         }}></div>
                     }
                   >
-                  {tokens.map((line, index) => {
+                  {tokens.map((line, index) => {      // Display each line
                     const lineProps = getLineProps({ line, key: index });
                     lineProps.className += ` line-${`0x${instructions[base][index].index.toString(16).padStart(4, "0")}`}`;
                     

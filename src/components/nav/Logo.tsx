@@ -1,6 +1,9 @@
 import React from "react";
 import { Box, Text } from "@chakra-ui/react";
 
+/**
+ * Linear Gradient Harmonic Logo
+ */
 const Logo = (props: any) => (
     <Box { ...props }>
         <Text

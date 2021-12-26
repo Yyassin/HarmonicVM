@@ -1,9 +1,15 @@
 import React from "react";
 import { Slider, SliderFilledTrack, SliderMark, SliderThumb, SliderTrack, Tooltip } from "@chakra-ui/react"
 
+/**
+ * Slider to modify run step speed
+ * @param onChange handler, onChange handler for speed
+ * @param open boolean, controls if tooltip opens
+ */
 const SpeedSlider = ({onChange, open}) => {
-    const [sliderValue, setSliderValue] = React.useState(5)
-    const [showTooltip, setShowTooltip] = React.useState(false)
+    const [sliderValue, setSliderValue] = React.useState(5);
+    const [showTooltip, setShowTooltip] = React.useState(false);
+
     return (
       <Slider
         id='slider'

@@ -40,6 +40,9 @@ const {
     HLT  
 } = InstructionMnemonic;
 
+/*** ========================================
+ * Create the parsers for each instruction wrapped by the corresponding generic 
+ * =========================================== ***/
 const mov = Arc.choice([
     regReg(MOV, instructionType[MOV].regReg),
     litReg(MOV, instructionType[MOV].litReg),

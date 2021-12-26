@@ -1,6 +1,9 @@
 // @ts-nocheck - exporting types is a re-export
 
-type NonNull = {}
+type NonNull = {};  // anything but null
+
+// Generic Parser State, transformer (applies a new parser on a given state)
+// and mutator (maps state to another)
 interface ParserState<T, E = string> {
     targetString: string,
     index: number,
@@ -11,6 +14,8 @@ interface ParserState<T, E = string> {
 type ParserStateTransformer<T, E = string> = (parserState: ParserState<T, E>) => ParserState<T, E>;
 type Mutator<T, K> = (result: T) => K;
 
+/* Parser Result Types */
+// Err -> Erroneous State, Ok -> Valid State
 type ResultType<T, E = string> = Err<E> | Ok<T>;
 type Err<E = string> = {
     targetString: string;
@@ -35,4 +40,4 @@ export {
     ResultType,
     Err,
     Ok
-}
+};

@@ -1,12 +1,14 @@
 import React from "react";
 import { Link, Box, Flex, Text, Button, Stack, useColorMode, Input, FormLabel, Checkbox } from "@chakra-ui/react";
-
 import Logo from "./Logo";
 import SpeedSlider from "./SpeedSlider";
 
+/**
+ * Navbar container wrapper
+ * @param props handlerFunctions, see MenuLinks.
+ */
 const NavBar = (props) => {
   const [isOpen, setIsOpen] = React.useState(true);
-
   const toggle = () => setIsOpen(!isOpen);
 
   return (
@@ -18,6 +20,9 @@ const NavBar = (props) => {
   );
 };
 
+/**
+ * Burger Close Icon
+ */
 const CloseIcon = () => (
   <svg width="24" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
     <title>Close</title>
@@ -28,6 +33,9 @@ const CloseIcon = () => (
   </svg>
 );
 
+/**
+ * Burger Menu Icon
+ */
 const MenuIcon = () => (
   <svg
     width="24px"
@@ -40,6 +48,9 @@ const MenuIcon = () => (
   </svg>
 );
 
+/**
+ * Burger Menu Toggle Button
+ */
 const MenuToggle = ({ toggle, isOpen }) => {
   return (
     <Box display={{ base: "block", md: "none" }} onClick={toggle}>
@@ -48,16 +59,9 @@ const MenuToggle = ({ toggle, isOpen }) => {
   );
 };
 
-const MenuItem = ({ children, to = "/", ...rest }) => {
-  return (
-    <Link href={to}>
-      <Text display="block" {...rest}>
-        {children}
-      </Text>
-    </Link>
-  );
-};
-
+/**
+ * Navigation Link (Emulates a button)
+ */
 const MenuAButton = ({ children, to = "/", ...rest }) => {
   return (
       <Text cursor="pointer" display="block" {...rest}>
@@ -66,10 +70,13 @@ const MenuAButton = ({ children, to = "/", ...rest }) => {
   );
 };
 
+/**
+ * All the navigation links
+ */
 const MenuLinks = ({ isOpen, handleAssemble, handleLoadBinary, handleStep, handleRun, handleRunSpeed, disabledAssemble, running }) => {
-  const { colorMode, toggleColorMode } = useColorMode();
-  const baseAddr = React.useRef(0);
-  const fresh = React.useRef(false);
+  const { colorMode, toggleColorMode } = useColorMode();  // Handles theme
+  const baseAddr = React.useRef(0);                       // Load base address
+  const fresh = React.useRef(false);                      // True if loading and refreshing internal memory state, false otherwise
 
   return (
     <Box
@@ -125,7 +132,6 @@ const MenuLinks = ({ isOpen, handleAssemble, handleLoadBinary, handleStep, handl
             transition: "100ms ease"
           }} 
           onClick={handleStep}> Step </MenuAButton>
-          
         <SpeedSlider open={isOpen} onChange={(value) => handleRunSpeed(value)}></SpeedSlider>
         <MenuAButton>
           <Button
@@ -160,6 +166,9 @@ const MenuLinks = ({ isOpen, handleAssemble, handleLoadBinary, handleStep, handl
   );
 };
 
+/**
+ * Navbar container
+ */
 const NavBarContainer = ({ children, ...props }) => {
   return (
     <Flex

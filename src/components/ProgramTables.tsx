@@ -5,8 +5,13 @@ import MainMemory from "./Memory";
 import Registers from "./Registers";
 import Stack from "./Stack";
 
+/**
+ * View of all program tables: registers, main memory (indexed at a specified pointer) and stack.
+ * @returns JSX.Element, the program tables component.
+ */
 const ProgramTables = () => {
-    const memoryRef = useRef<any>();
+    const memoryRef = useRef<any>();    // Forward ref into main memory to set base pointer 
+                                        // from external label (so it can be beside the heading - yea it's bad :P)
 
     return(
     <div className="program-wrapper">
@@ -26,8 +31,7 @@ const ProgramTables = () => {
                         width={"60px"}
                         fontSize={"18px"} 
                         padding={"5px"}
-                        onChange={event => {
-                            console.log(memoryRef);
+                        onChange={event => {    // Update the base pointer
                             memoryRef.current && memoryRef.current.setBaseWrapped(parseInt(event.target.value, 16))
                         }}
                     >

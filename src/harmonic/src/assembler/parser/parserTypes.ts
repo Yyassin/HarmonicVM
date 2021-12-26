@@ -1,5 +1,6 @@
 import { asType, ParserTypes } from "./util";
 
+// ParserTypes: wrap and tokenize a node with the appropriate type label for parsing.
 export const parserTypes = {
     register:                   asType(ParserTypes.REGISTER),
     hexLiteral:                 asType(ParserTypes.HEX_LITERAL),

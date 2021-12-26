@@ -1,5 +1,7 @@
 import styled from "styled-components";
 
+/*** Styles for prisma syntax highlighting (css is not supported conviently) ***/
+
 export const Wrapper = styled.div`
   font-family: sans-serif;
   text-align: center;

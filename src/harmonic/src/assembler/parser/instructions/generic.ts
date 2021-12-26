@@ -6,33 +6,50 @@ import { squareBracketExpr } from "../expressions";
 import { parserTypes } from "../parserTypes";
 import { ParserTypes } from "../util";
 
-export interface IReturn  { type: ParserTypes; value: any; }
-type Parser = IParser<IReturn, string>;
-const contextual = (arg: () => Generator<any, IReturn, any>) => Arc.contextual<IReturn>(arg);
+/* Types */
+export interface IReturn  { type: ParserTypes; value: any; }                                        // Parser return value types
+type Parser = IParser<IReturn, string>;                                                             // Generic Parser
+const contextual = (arg: () => Generator<any, IReturn, any>) => Arc.contextual<IReturn>(arg);       // Contextual Typecast
 
+/**
+ * Matches and wraps a literal + register instruction of the form
+ * MNEMONIC ${LITERAL}, REGISTER 
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const litReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
-    yield upperOrLowerStr(mnemonic);
-    yield Arc.whitespace;
+    yield upperOrLowerStr(mnemonic);        // Match the mnemonic
+    yield Arc.whitespace;                   // Must be followed by whitespace
 
-    const arg1 = yield Arc.choice([
+    const arg1 = yield Arc.choice([         // Match the literal (can be an expression)
         hexLiteral,
         squareBracketExpr
     ]);
 
-    yield Arc.optionalWhitespace;
+    yield Arc.optionalWhitespace;           // Match comma
     yield Arc.char(',');
     yield Arc.optionalWhitespace;
 
-    const arg2 = yield register;
+    const arg2 = yield register;            // Match the register, followed by any whitespace/commas
     yield Arc.optionalWhitespace;
     yield Arc.optionalComment;
 
-    return parserTypes.instruction({
+    return parserTypes.instruction({        // Return the wrapped instruction
         instruction: type,
         args: [arg1, arg2]
     });
 });
 
+/**
+ * Matches and wraps a register + literal instruction of the form
+ * MNEMONIC REGISTER, ${LITERAL} 
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const regLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
@@ -56,6 +73,14 @@ const regLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     });
 });
 
+/**
+ * Matches and wraps a register + register instruction of the form
+ * MNEMONIC REGISTER, REGISTER
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const regReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
@@ -76,6 +101,14 @@ const regReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     });
 });
 
+/**
+ * Matches and wraps a register + address instruction of the form
+ * MNEMONIC REGISTER, &[MEMORY ADDRESS]
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const regMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
@@ -101,6 +134,14 @@ const regMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     });
 });
 
+/**
+ * Matches and wraps an address + literal instruction of the form
+ * MNEMONIC &[MEMORY ADDRESS], REGISTER
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const memReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
@@ -126,6 +167,14 @@ const memReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     });
 });
 
+/**
+ * Matches and wraps a literal + adress instruction of the form
+ * MNEMONIC ${LITERAL}, &[MEMORY ADDRESS]
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const litMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
@@ -153,6 +202,14 @@ const litMem = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     });
 });
 
+/**
+ * Matches and wraps a register + register (as memory index) instruction of the form
+ * MNEMONIC &REGISTER, REGISTER
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const regIndReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
@@ -174,6 +231,14 @@ const regIndReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
     });
 });
 
+/**
+ * Matches and wraps a literal + register + register instruction of the form
+ * MNEMONIC ${LITERAL} , &REGISTER, REGISTER
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const litOffReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
@@ -204,6 +269,14 @@ const litOffReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
     });
 });
 
+/**
+ * Matches and wraps an instruction with no arguments of the form
+ * MNEMONIC
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const noArgs = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.optionalWhitespace;
@@ -215,6 +288,14 @@ const noArgs = (mnemonic: InstructionMnemonic, type: Instruction): Parser => con
     });
 });
 
+/**
+ * Matches and wraps a single register instruction of the form
+ * MNEMONIC REGISTER 
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const singleReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
@@ -229,6 +310,14 @@ const singleReg = (mnemonic: InstructionMnemonic, type: Instruction): Parser => 
     });
 });
 
+/**
+ * Matches and wraps a single  literal instruction of the form
+ * MNEMONIC ${LITERAL} 
+ * for the specified instruction type.
+ * @param mnemonic InstructionMnemonic, the instruction mnemonic.
+ * @param type Instruction, the specific instruction type to wrap.
+ * @returns Parser, the wrapped litReg parser.
+ */
 const singleLit = (mnemonic: InstructionMnemonic, type: Instruction): Parser => contextual(function* () {
     yield upperOrLowerStr(mnemonic);
     yield Arc.whitespace;
