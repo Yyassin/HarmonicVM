@@ -20,10 +20,10 @@ export const tests = [
     },
     {
         name: "sub_lit_reg",
-        statement: "add $1, r2",
+        statement: "sub $1, r2",
         expected: {
-            instructionType: Instruction.ADD_LIT_REG,
-            outcome: 3,
+            instructionType: Instruction.SUB_LIT_REG,
+            outcome: 1,
             arg1: {
                 type: ParserTypes.HEX_LITERAL,
                 value: "1"
