@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/HarmonicVM/static/css/main.1bfd3115.chunk.css",
+    "main.js": "/HarmonicVM/static/js/main.4e277fbd.chunk.js",
+    "main.js.map": "/HarmonicVM/static/js/main.4e277fbd.chunk.js.map",
+    "runtime-main.js": "/HarmonicVM/static/js/runtime-main.3bbaef54.js",
+    "runtime-main.js.map": "/HarmonicVM/static/js/runtime-main.3bbaef54.js.map",
+    "static/css/2.f4c56af9.chunk.css": "/HarmonicVM/static/css/2.f4c56af9.chunk.css",
+    "static/js/2.bdd507c2.chunk.js": "/HarmonicVM/static/js/2.bdd507c2.chunk.js",
+    "static/js/2.bdd507c2.chunk.js.map": "/HarmonicVM/static/js/2.bdd507c2.chunk.js.map",
+    "index.html": "/HarmonicVM/index.html",
+    "static/css/2.f4c56af9.chunk.css.map": "/HarmonicVM/static/css/2.f4c56af9.chunk.css.map",
+    "static/css/main.1bfd3115.chunk.css.map": "/HarmonicVM/static/css/main.1bfd3115.chunk.css.map",
+    "static/js/2.bdd507c2.chunk.js.LICENSE.txt": "/HarmonicVM/static/js/2.bdd507c2.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.3bbaef54.js",
+    "static/css/2.f4c56af9.chunk.css",
+    "static/js/2.bdd507c2.chunk.js",
+    "static/css/main.1bfd3115.chunk.css",
+    "static/js/main.4e277fbd.chunk.js"
+  ]
+}
