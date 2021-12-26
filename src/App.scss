@@ -55,6 +55,14 @@ html, body, #app, #root, .App, .body-wrapper {
         display: flex;
         flex-direction: column;
         align-content: space-between;
+
+        .memory-head {
+            display: flex;
+            flex-direction: row;
+            height: auto;
+            justify-content: space-between;
+            padding-bottom: 0;
+        }
     }
 
     .memory-col div, .registers {

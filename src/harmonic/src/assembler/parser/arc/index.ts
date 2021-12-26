@@ -77,7 +77,7 @@ class Parser<T, E = string> {
         
         const finalParsed = this.#parserStateTransformer(initialState);
         if (strict && finalParsed.index != finalParsed.targetString.length) {
-                throw new Error(`Parse error at index ${finalParsed.index}: ` +
+                throw new Error(`Syntax error: index ${finalParsed.index}: ` +
                     `${finalParsed.targetString.slice(finalParsed.index, Math.min(finalParsed.index + 15, finalParsed.targetString.length))} ...`);
         }
         return finalParsed;

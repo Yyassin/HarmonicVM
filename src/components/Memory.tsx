@@ -1,6 +1,6 @@
 import { Input, InputGroup, InputLeftAddon } from "@chakra-ui/input";
 import { Table, TableCaption, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/table";
-import React, { useEffect, useState } from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { Memory } from "../harmonic/src/types";
 import { memorySelector, pcSelector, spSelector } from "../reducers/memoryReducer";
 import { useAppSelector } from "../store";
@@ -44,12 +44,13 @@ const getMemoryRow = (memory: Memory, n: number, base: number) => {
     return nextNBytes;
 }
 
-const MainMemory = ({ end, tableCaption }: any) => {
+const MainMemory = ({ end, tableCaption }: any, ref) => {
     const memory = useAppSelector(memorySelector);
     const pc = useAppSelector(pcSelector);
     const sp = useAppSelector(spSelector);
     const rows = 7;
     const cols = 4;
+    
     const getBase = () => {
         if (end) {
             return (end - rows * cols);
@@ -70,8 +71,7 @@ const MainMemory = ({ end, tableCaption }: any) => {
         }
 
         return (
-            <Table size="sm" height="89%" variant="striped" colorScheme="twitter">
-                {/* <TableCaption>{ tableCaption || "Main Memory" }</TableCaption> */}
+            <Table size="sm" height="89%" variant="striped" colorScheme="twitter" marginBottom={"5px"}>
                 <Thead>
                     <Tr>
                         <Th>Address</Th>
@@ -117,12 +117,19 @@ const MainMemory = ({ end, tableCaption }: any) => {
     })
 
     const setBaseWrapped = (value: number) => {
+        console.log("called")
         isNaN(value) ? setBase(getBase()) : setBase(value);
     }
+
+    useImperativeHandle(ref, () => ({
+        setBaseWrapped (value: number) {
+            setBaseWrapped(value);
+        }
+    }), []);
 
     return (
       memoryTable(base, rows, cols)
     );
   }
 
-  export default MainMemory;
+  export default forwardRef(MainMemory);

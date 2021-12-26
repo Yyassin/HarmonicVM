@@ -1,10 +1,11 @@
 import React from "react";
-import { Link, Box, Flex, Text, Button, Stack, useColorMode } from "@chakra-ui/react";
+import { Link, Box, Flex, Text, Button, Stack, useColorMode, Input, FormLabel, Checkbox } from "@chakra-ui/react";
 
 import Logo from "./Logo";
+import SpeedSlider from "./SpeedSlider";
 
 const NavBar = (props) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(true);
 
   const toggle = () => setIsOpen(!isOpen);
 
@@ -65,8 +66,11 @@ const MenuAButton = ({ children, to = "/", ...rest }) => {
   );
 };
 
-const MenuLinks = ({ isOpen, handleAssemble, handleLoadBinary, handleStep, handleRun, running }) => {
+const MenuLinks = ({ isOpen, handleAssemble, handleLoadBinary, handleStep, handleRun, handleRunSpeed, disabledAssemble, running }) => {
   const { colorMode, toggleColorMode } = useColorMode();
+  const baseAddr = React.useRef(0);
+  const fresh = React.useRef(false);
+
   return (
     <Box
       display={{ base: isOpen ? "block" : "none", md: "block" }}
@@ -76,25 +80,53 @@ const MenuLinks = ({ isOpen, handleAssemble, handleLoadBinary, handleStep, handl
         spacing={8}
         align="center"
         justify={["center", "space-between", "flex-end", "flex-end"]}
-        direction={["column", "row", "row", "row"]}
+        direction={["column", "column", "row", "row"]}
         pt={[4, 4, 0, 0]}
       >
         <MenuAButton 
+          color={disabledAssemble ? "grey" : "inherit"}
           _hover={{
-            color: "teal.500"
+            color: disabledAssemble ? "grey" : "teal.500",
+            cursor: disabledAssemble ? "default" : "pointer",
+            transition: "100ms ease"
           }} 
-          onClick={handleAssemble}> Assemble </MenuAButton>
-        <MenuAButton
+          onClick={() => !disabledAssemble && handleAssemble(baseAddr.current, fresh.current)}> Assemble </MenuAButton>
+        <FormLabel 
+          htmlFor='load' 
           _hover={{
-            color: "teal.500"
+            color: "teal.500",
+            transition: "100ms ease",
+            cursor: "pointer"
           }} 
-          onClick={handleLoadBinary}> Load </MenuAButton>
+          onClick={() => handleLoadBinary(baseAddr.current, fresh.current)}
+        >
+          Load
+        </FormLabel>
+        <Checkbox
+          onChange={e => fresh.current = e.target.checked}
+        >
+          Fresh?
+        </Checkbox>
+        <Input 
+            id="load"
+            defaultValue={"0000"}
+            color={"blue.600"}
+            fontWeight={"bold"} 
+            maxLength={4} 
+            height={"30px"}
+            width={"60px"}
+            fontSize={"18px"} 
+            padding={"5px"}
+            onChange={event => baseAddr.current = parseInt(event.target.value, 16)}
+        ></Input>
         <MenuAButton 
           _hover={{
-            color: "teal.500"
+            color: "teal.500",
+            transition: "100ms ease"
           }} 
           onClick={handleStep}> Step </MenuAButton>
           
+        <SpeedSlider open={isOpen} onChange={(value) => handleRunSpeed(value)}></SpeedSlider>
         <MenuAButton>
           <Button
             size="sm"

@@ -6,22 +6,26 @@ import CPU from "../harmonic/src/cpu/CPU";
 
 // Initializes the machine
 let vm: VM;
-export const initVM = (program: Uint8Array) => {
-    vm = init(program);
+export const initVM = (program: Uint8Array, base: number = 0, previousMemory: Uint8Array = null) => {
+    vm = init(program, base, previousMemory);
 };
 
 // State type
 interface MemoryState {
     memory: Memory,
     cpu: CPU,
-    meta: any
+    meta: any,
+    writableBytes: Uint8Array,
+    halt: boolean
 }
 
 initVM(new Uint8Array([]));
 const initialState: MemoryState = {
     memory: vm.memory,
     cpu: vm.cpu,
-    meta: null
+    meta: null,
+    writableBytes: vm.writableBytes,
+    halt: false
 }
 
 export const memoryReducer = createSlice({
@@ -29,9 +33,9 @@ export const memoryReducer = createSlice({
     initialState,
     reducers: {
         // Initialization
-        initMachine: (state, action: PayloadAction<number[]>) => {
-            const program = action.payload;
-            initVM(new Uint8Array(program));
+        initMachine: (state, action: PayloadAction<{program: number[], base: number, reset?: boolean}>) => {
+            const { program, base, reset } = action.payload;
+            initVM(new Uint8Array(program), base, reset ? null :state.writableBytes);
 
             return {
                 ...state,
@@ -40,26 +44,35 @@ export const memoryReducer = createSlice({
         },
         // Execute and step through instruction
         step: (state) => {
-            vm.cpu.cycle();
+            const halt = vm.cpu.cycle();
 
             // console.log(vm.cpu.getRegister('pc'));
             return {
                 ...state,
-                ...vm
+                ...vm, 
+                halt: halt || false
             }
         },
         // Sets up metadata corresponding to parsed assembly
-        setMeta: (state, action: PayloadAction<any>) => {
-            const meta = action.payload;
+        setMeta: (state, action: PayloadAction<{meta: any, base: number, reset: boolean}>) => {
+            const {meta, base, reset} = action.payload;
+
             return {
                 ...state,
-                meta: [...meta]
+                meta: reset ? {[base.toString(16)]: [...meta] } : {...state.meta,  [base.toString(16)]: [...meta] }
+            }
+        },
+
+        resetHalt: (state) => {
+            return {
+                ...state,
+                halt: false
             }
         }
     }
 })
 
-export const { step, initMachine, setMeta } = memoryReducer.actions;
+export const { step, initMachine, setMeta, resetHalt } = memoryReducer.actions;
 
 /** Selectors **/
 export const registersSelector = createSelector(
@@ -87,6 +100,13 @@ export const metaSelector = createSelector(
     (state: RootState) => state.memory.meta,
     (meta: any) => {  
         return meta;
+    }
+);
+
+export const haltSelector = createSelector(
+    (state: RootState) => state.memory.halt,
+    (halt: boolean) => {  
+        return halt;
     }
 );
 

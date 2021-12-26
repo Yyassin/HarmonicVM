@@ -9,16 +9,17 @@ import { Memory } from "./src/types";
 
 // VM Initialization and Program Loading 
 export interface VM { memory: Memory, writableBytes: Uint8Array, cpu: CPU };
-export const init = (program?: Uint8Array): VM => {
+export const init = (program: Uint8Array = null, base: number, previousMemory: Uint8Array): VM => {
     const memory = createMemory(256 * 256);                 // Create memory - 16-bit VM : 65536 words
     const writableBytes = new Uint8Array(memory.buffer);
+    if (previousMemory) writableBytes.set(previousMemory);
     const cpu = new CPU(memory);
 
     // Store the program machine code in memory
     // -> We have to do it this way since React's
     // state is immutable.
     for (let i = 0; program && i < program.length; i++) {
-        writableBytes[i] = program[i];
+        writableBytes[base + i] = program[i];
     }
 
     return { memory, writableBytes, cpu };

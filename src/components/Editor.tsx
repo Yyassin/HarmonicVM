@@ -1,10 +1,11 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { assemble } from "../harmonic/src/assembler";
 import { initMachine, setMeta } from "../reducers/memoryReducer";
 import { useAppDispatch } from "../store";
-import Monaco, { useMonaco } from "@monaco-editor/react";
-import { Button } from "@chakra-ui/button";
-import { editor } from "monaco-editor";
+import Monaco from "@monaco-editor/react";
+import { ToastContainer } from "react-toastify";
+import { toastSuccess, toastError, dismissAll } from "./toasts";
+
 import useHarmonic from "./langauge";
 import ProgramMeta from "./ProgramMeta";
 
@@ -24,37 +25,44 @@ const Editor = (props, ref) => {
     const saveAssembly = () => assemblyCode.current = editorRef.current.getValue();
     const format = (text: string): string => text.replace(/(?:\r\n|\r|\n)/g, '\n'); // Need to replace \r\n with \n since regex is hard
 
-    const generateMachineCode = () => {
+    const setEditorWrapped = (type: EditorType) => {
+        props.setDisableAssemble(type == EditorType.MACHINE_CODE);
+        setEditor(type);
+    }
+
+    const generateMachineCode = (base: number, reset: boolean) => {
+        dismissAll();
         saveAssembly();
 
         let assembled: number[], parsedInstructions: any[];
         try {
             ({ assembled, parsedInstructions } = assemble(format(assemblyCode.current.trim() + "\n")));
+            toastSuccess();
         } catch (e) {
-            console.log("Error: ", e.message);
+            toastError(e.message);
             return;
         }
 
-        machineCode.current = assembled.reduce((code, byte, idx) => {
+        machineCode.current = assembled.reduce((code, byte, _) => {
             code += `0x${byte.toString(16).padStart(2, "0")}` + " ";
             return code;
         }, "");
 
-        dispatch(setMeta(parsedInstructions));
-        setEditor(EditorType.MACHINE_CODE);
+        dispatch(setMeta({meta: parsedInstructions, base, reset}));
+        setEditorWrapped(EditorType.MACHINE_CODE);
     }
 
-    const loadBinary = () =>{ 
+    const loadBinary = (base: number, reset: boolean) =>{ 
         const binaryBuffer = machineCode.current.split(" ").map(byte => parseInt(byte, 16));
-        dispatch(initMachine(binaryBuffer));
+        dispatch(initMachine({program: binaryBuffer, base, reset}));
     }
 
     useImperativeHandle(ref, () => ({
-        generateMachineCode () {
-            generateMachineCode();
+        generateMachineCode (base: number, reset: boolean) {
+            generateMachineCode(base, reset);
         },
-        loadBinary () {
-            loadBinary();
+        loadBinary (base: number, reset: boolean) {
+            loadBinary(base, reset);
         }
     }), []);
 
@@ -66,9 +74,10 @@ const Editor = (props, ref) => {
 
     return (
         <>
+        <ToastContainer />
         <div className="tab-area">
-            <button className={(editor === EditorType.ASSEMBLY) ? "editor-tab active" : "editor-tab"} onClick={() => setEditor(EditorType.ASSEMBLY)}>Assembly</button>
-            <button disabled={!machineCode.current} className={(editor === EditorType.MACHINE_CODE) ? "editor-tab active" : "editor-tab"} onClick={() => setEditor(EditorType.MACHINE_CODE)}>Loader</button>
+            <button className={(editor === EditorType.ASSEMBLY) ? "editor-tab active" : "editor-tab"} onClick={() => setEditorWrapped(EditorType.ASSEMBLY)}>Assembly</button>
+            <button disabled={!machineCode.current} className={(editor === EditorType.MACHINE_CODE) ? "editor-tab active" : "editor-tab"} onClick={() => setEditorWrapped(EditorType.MACHINE_CODE)}>Loader</button>
         </div>
         <div className="editor">
             <Monaco 
@@ -77,6 +86,7 @@ const Editor = (props, ref) => {
                 onChange={ saveAssembly }
                 language={ languageID }
                 onMount={ handleEditorDidMount }
+                options={{"fontSize": 15, "mouseWheelZoom": true}}
                 theme="vs-dark"
             />       
             {
