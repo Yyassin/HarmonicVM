@@ -45,7 +45,7 @@ Here are some of the features Harmonic boasts
    - The ability to load machine code anywhere in main memory and begin execution: either step by step or continual running of the program (I suggest using the `hlt` instruction for the latter).
 
 ## Your First Program
-To help you get started with using Harmonic, let's walk-through writing and loading the machine-code that implements a program to compute the nth fibonacci number. In our case, the 10th number.
+To help you get started with using Harmonic, let's walk-through writing and loading the machine-code that implements a program to compute the nth fibonacci number. In our case, the 12th number.
 1. First, head over to the Harmonic wesbite [here](https://yyassin.github.io/HarmonicVM/).
 2. Copy the assembly code below into the "Assembly" tab then click the "Assemble" option in the menu.
 3. The editor should switch to the "Loader" tab and display the binary string that represents the machine code of the assembled program. Below, you'll also notice all the instructions that were parsed. 
@@ -54,28 +54,30 @@ To help you get started with using Harmonic, let's walk-through writing and load
 6. Try using the "Run" option and letting it run. The program will stop, due to the `hlt` instruction, once the 10th fibonacci number has been calculated and its value - 0x59 or 89 - placed in `r2`. 
 
 ```assembly
-    ; Harmonic Assembly Script to calculate 10th fibonacci term in r2
+    ; Harmonic Assembly Script to calculate 12th fibonacci term in r2
     
     ; Declare constants
     constant term = $a      ; The number of fibonacci terms 
-                            ; to calculate (10)
+                            ; to calculate after the 2nd (10)
     constant fn2 = $3000    ; f(n-2)
 
     ; The sequence below is not efficient
     ; but is used to show off some instructions
 
-    ; r1 is used to store f(n-1), r2 stores f(n-2)
+    ; r1 is used to store f(n-2), r2 stores f(n-1)
 
     mov [!term], r0   ; Set r0 to the number of fib terms      
 
     mov $0, &[!fn2]   ; Set memory address 0x3000 as 0
     psh $1            ; push 0x1 on the stack
 
-    mov &[!fn2], r1   ; Set r1 to the value of memory @ 0x3000
-    pop r2            ; pop top of stack (0x1) into r2
+    mov &[!fn2], r1   ; Set r1 to the value of memory @ 0x3000. r1 = 0.
+    pop r2            ; pop top of stack (0x1) into r2. r2 = 1.
 
 
-    ; The main iterative fibonacci loop
+    ; The main iterative fibonacci loop. This will fire
+    ; 10 times before r0 == 0 (for r0 = 10 until r0 = 1).  
+    ; At that point f(10 + 2) = 89 = 0x59 -> r2.
     loop: 
         add r1, r2      ; Calculate the next fib term f(n)
         mov r2, r1      ; update f(n-2) as f(n-1)
