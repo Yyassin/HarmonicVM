@@ -51,7 +51,7 @@ To help you get started with using Harmonic, let's walk-through writing and load
 3. The editor should switch to the "Loader" tab and display the binary string that represents the machine code of the assembled program. Below, you'll also notice all the instructions that were parsed. 
 4. Make sure the load address in the menu is still 0 and select the "Load" option to load the program into main memory - you should be able to see the contents loaded.
 5. Once loaded, you're ready to execute the program. Use the "Step" option to execute instruction by instruction or the "Run" option to continuously step through the program. The step speed for "Run" can be modified with the slider but will only take effect on the next execution.
-6. Try using the "Run" option and letting it run. The program will stop, due to the `hlt` instruction, once the 10th fibonacci number has been calculated and its value - 0x59 or 89 - placed in `r2`. 
+6. Try using the "Run" option and letting it run. The program will stop, due to the `hlt` instruction, once the 12th fibonacci number has been calculated and its value - 0x59 or 89 - placed in `r2`. 
 
 ```assembly
     ; Harmonic Assembly Script to calculate 12th fibonacci term in r2
